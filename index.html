@@ -474,6 +474,7 @@
             break-inside: avoid !important;
         }
 
+
         #songDisplay {
             max-width: 1200px;
             margin: 0 auto;
@@ -486,14 +487,214 @@
             page-break-inside: avoid;
             display: block;
         }
+
+        .filter-tab {
+            padding: 8px 18px;
+            border-radius: 20px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            background: rgba(102,126,234,0.1);
+            color: #667eea;
+            border: 2px solid #667eea;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: none;
+        }
+        .filter-tab.active, .filter-tab:hover {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            .subtitle {
+                font-size: 0.9rem;
+            }
+
+            /* Onglets de navigation : défilement horizontal */
+            .nav-tabs {
+                flex-wrap: nowrap;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                gap: 4px;
+                padding: 4px;
+                border-radius: 10px;
+                scrollbar-width: none;
+            }
+            .nav-tabs::-webkit-scrollbar { display: none; }
+
+            .nav-tab {
+                font-size: 0.75rem;
+                padding: 10px 8px;
+                white-space: nowrap;
+                flex: 0 0 auto;
+            }
+
+            /* Contenu des onglets */
+            .tab-content {
+                padding: 15px 12px;
+                border-radius: 15px;
+            }
+
+            /* Grille de chansons : 1 colonne sur mobile */
+            .song-list {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+
+            .song-card {
+                padding: 14px;
+            }
+
+            .song-title {
+                font-size: 1.1rem;
+                word-break: break-word;
+            }
+
+            .song-artist {
+                font-size: 0.9rem;
+                word-break: break-word;
+            }
+
+            .song-actions {
+                flex-wrap: wrap;
+                gap: 6px;
+            }
+
+            .btn-small {
+                padding: 7px 10px;
+                font-size: 0.8rem;
+            }
+
+            /* Formulaires */
+            input, textarea, select {
+                font-size: 0.95rem;
+                padding: 10px;
+            }
+
+            button {
+                font-size: 0.9rem;
+                padding: 10px 16px;
+            }
+
+            /* Accords */
+            .chord-btn {
+                padding: 5px 6px;
+                font-size: 0.75rem;
+            }
+
+            /* Contrôles de transposition */
+            .transposition-controls {
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+
+            /* Modal */
+            .modal-content {
+                margin: 10px auto;
+                padding: 15px;
+                width: 96%;
+                max-height: 90vh;
+                border-radius: 12px;
+            }
+
+            /* Affichage chanson */
+            #songDisplay {
+                font-size: 0.85rem;
+                padding: 10px 6px 0 6px;
+                overflow-x: auto;
+            }
+
+            .chord-line, .lyric-line {
+                white-space: pre;
+                overflow-x: auto;
+                display: block;
+                max-width: 100%;
+            }
+
+            /* Lignes de sélection dans le culte */
+            #culteSongsList div[style*="display:flex"] {
+                flex-wrap: wrap;
+            }
+
+            /* Lignes dans la liste du culte sélectionnées */
+            #culteSelectedSongsList div[style*="display:flex"] {
+                flex-wrap: wrap;
+                gap: 6px;
+            }
+
+            /* Export/Import boutons */
+            div[style*="display:flex"][style*="gap:10px"] {
+                flex-wrap: wrap;
+            }
+
+            /* Calendrier stats */
+            .stats-calendar-table td {
+                padding: 4px 2px;
+                font-size: 0.7rem;
+                min-width: unset;
+                height: 50px;
+            }
+
+            .stats-calendar-table th {
+                padding: 6px 2px;
+                font-size: 0.75rem;
+            }
+
+            /* Header stats */
+            #statsCalendarHeader {
+                font-size: 1rem;
+            }
+
+            /* Culte form */
+            #culteForm {
+                max-width: 100% !important;
+            }
+        }
+
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 1.25rem;
+            }
+
+            .nav-tab {
+                font-size: 0.7rem;
+                padding: 8px 6px;
+            }
+
+            .tab-content {
+                padding: 12px 8px;
+            }
+
+            .song-card {
+                padding: 12px;
+            }
+
+            /* Textes dans les cards ne débordent pas */
+            .song-title, .song-artist, .song-preview {
+                word-break: break-word;
+                overflow-wrap: break-word;
+            }
+
+            .song-preview {
+                font-size: 0.8rem;
+            }
+        }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>🎵 HIRA FIANGONANA BATISTA AMBOHITRARAHABA</h1>
-            <p class="subtitle">Ahitana ireo hira hirain'ny Fiangonana Batista Ambohitrarahaba</p>
+            <h1>🎵 HIRA SY ACCORD BATISTA AMBOHITRARAHABA</h1>
+            <p class="subtitle">Ahitana ireo hira hira sy accord ao amin'ny fiangonana Batista Ambohitrarahaba</p>
             <div id="songCounter" style="margin-top:10px; color:#fff; font-weight:bold; font-size:1.1rem;"></div>
         </header>
 
@@ -731,10 +932,10 @@
         let songFilterType = 'artist'; // 'artist' ou 'title'
         let selectedArtist = null;
 
-        // === jsonbin.io configuration ===
-        // Remplace ces valeurs par les tiennes !
-        const JSONBIN_API_KEY = 'TON_API_KEY_ICI';
-        const JSONBIN_BIN_ID = 'TON_BIN_ID_ICI';
+        // === Stockage LOCAL (localStorage) — base principale, toujours fiable ===
+        // === jsonbin.io (optionnel) — sauvegarde distante si configuré ===
+        const JSONBIN_API_KEY = ''; // Laisser vide pour désactiver la sauvegarde distante
+        const JSONBIN_BIN_ID  = ''; // Laisser vide pour désactiver la sauvegarde distante
 
         // --- Gestion du code de sécurité ---
         function getEditCode() {
@@ -766,36 +967,66 @@
             alert("vita soa aman-tsara !");
         }
 
-        // --- Sauvegarde persistante via jsonbin.io ---
+        // --- Sauvegarde persistante : localStorage (principal) + jsonbin.io (optionnel) ---
+        const LS_KEY = 'hirabatista_songs';
+
         async function saveData() {
+            // 1. Toujours sauvegarder en localStorage (instantané, fiable, local)
             try {
-                const data = { songs: songs };
-                const res = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Master-Key': JSONBIN_API_KEY
-                    },
-                    body: JSON.stringify(data)
-                });
-                if (!res.ok) throw new Error('Erreur lors de la sauvegarde distante');
+                localStorage.setItem(LS_KEY, JSON.stringify(songs));
             } catch (e) {
-                alert('Erreur lors de la sauvegarde distante : ' + e.message);
+                console.error('Erreur localStorage :', e);
+            }
+            // 2. Sauvegarde distante jsonbin.io (seulement si configuré)
+            if (JSONBIN_API_KEY && JSONBIN_BIN_ID &&
+                JSONBIN_API_KEY !== '' && JSONBIN_BIN_ID !== '') {
+                try {
+                    const data = { songs: songs };
+                    await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Master-Key': JSONBIN_API_KEY
+                        },
+                        body: JSON.stringify(data)
+                    });
+                } catch (e) {
+                    // Silencieux : le localStorage a déjà sauvegardé
+                    console.warn('Sauvegarde distante échouée (non critique) :', e.message);
+                }
             }
         }
 
         async function loadData() {
+            // 1. Essayer d'abord le localStorage (toujours disponible)
             try {
-                const res = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}/latest`, {
-                    headers: { 'X-Master-Key': JSONBIN_API_KEY }
-                });
-                if (!res.ok) throw new Error('Erreur lors du chargement distant');
-                const json = await res.json();
-                songs = (json.record && json.record.songs) ? json.record.songs : [];
+                const local = localStorage.getItem(LS_KEY);
+                if (local) {
+                    songs = JSON.parse(local) || [];
+                    return; // Chargement local réussi, pas besoin du distant
+                }
             } catch (e) {
-                alert('Erreur lors du chargement distant : ' + e.message);
-                songs = [];
+                console.warn('Erreur lecture localStorage :', e);
             }
+            // 2. Si localStorage vide et jsonbin configuré, essayer le distant
+            if (JSONBIN_API_KEY && JSONBIN_BIN_ID &&
+                JSONBIN_API_KEY !== '' && JSONBIN_BIN_ID !== '') {
+                try {
+                    const res = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}/latest`, {
+                        headers: { 'X-Master-Key': JSONBIN_API_KEY }
+                    });
+                    if (res.ok) {
+                        const json = await res.json();
+                        songs = (json.record && json.record.songs) ? json.record.songs : [];
+                        // Mettre en cache dans localStorage
+                        localStorage.setItem(LS_KEY, JSON.stringify(songs));
+                        return;
+                    }
+                } catch (e) {
+                    console.warn('Chargement distant échoué :', e.message);
+                }
+            }
+            songs = [];
         }
 
         // --- Export/Import des chansons (version distante) ---
@@ -812,7 +1043,7 @@
                 a.click();
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
-                alert('Export local effectué. (La sauvegarde principale est maintenant sur Internet)');
+                alert('Export réussi ! Vos chansons sont sauvegardées en local (localStorage) et dans ce fichier JSON.');
                 updateSongCounter();
             } catch (e) {
                 alert('Erreur export : ' + e.message);
@@ -887,7 +1118,7 @@
             document.getElementById('songForm').reset();
             updateChordSuggestions();
             updateSongCounter();
-            alert('Voatahiry ny hiranao (sur Internet) !');
+            alert('Voatahiry ny hiranao !');
         }
 
         // --- Modifie deleteSong pour attendre la sauvegarde distante ---
@@ -1412,16 +1643,7 @@
             document.getElementById('statsCalendar').innerHTML = calendar;
         }
 
-        // Initialisation
-        document.addEventListener('DOMContentLoaded', function() {
-            loadMySongs();
-            displaySongs();
-            displayMyOwnSongs();
-            updateChordSuggestions();
-            updateMyOwnChordSuggestions();
-            updateSongCounter();
-            updateCulteSelectedSongsList();
-        });
+        // Initialisation (gérée par le listener async ci-dessus)
 
         // Gestion des onglets
         function showTab(tabName) {
