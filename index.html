@@ -1027,8 +1027,9 @@
             refreshCloudStatusBox();
             updateSyncStatus('syncing');
             saveData().then(() => {
+                startAutoSync();
                 closeCloudSetup();
-                alert('Configuration enregistree ! Vos chansons sont maintenant synchronisees en ligne.');
+                showToast('Configuration enregistree ! Sync automatique activee.', 'success');
             });
         }
         function clearCloudConfig() {
@@ -1197,8 +1198,8 @@
                         });
                         await saveData();
                         displaySongs();
-                        const dest = isCloudConfigured() ? 'en ligne (partage entre tous les appareils)' : 'en local sur cet appareil';
-                        alert(added + ' chanson(s) importee(s) et sauvegardee(s) ' + dest + ' !');
+                        const dest = isCloudConfigured() ? ' - synchronisees en ligne !' : ' - sauvegardees en local.';
+                        showToast(added + ' chanson(s) importee(s)' + dest, 'success');
                         updateSongCounter();
                     } else {
                         alert('Fichier invalide.');
@@ -1211,6 +1212,40 @@
             reader.readAsText(file);
         }
 
+        // --- Synchronisation automatique en arriere-plan ---
+        let autoSyncInterval = null;
+        let lastKnownCount = -1; // Pour detecter les changements
+
+        // Verifie si de nouvelles chansons sont disponibles en ligne et raffraichit silencieusement
+        async function autoSyncFromCloud() {
+            if (!isCloudConfigured()) return;
+            try {
+                const res = await fetch('https://api.jsonbin.io/v3/b/' + getBinId() + '/latest', {
+                    headers: { 'X-Master-Key': getApiKey() }
+                });
+                if (!res.ok) return;
+                const json = await res.json();
+                const remoteSongs = (json.record && json.record.songs) ? json.record.songs : [];
+                // Compare avec ce qu'on a en memoire
+                if (JSON.stringify(remoteSongs) !== JSON.stringify(songs)) {
+                    songs = remoteSongs;
+                    try { localStorage.setItem(LS_KEY, JSON.stringify(songs)); } catch(e) {}
+                    displaySongs();
+                    updateSongCounter();
+                    updateSyncStatus('ok');
+                }
+            } catch(e) {
+                // Pas de reseau : garder les donnees actuelles silencieusement
+            }
+        }
+
+        function startAutoSync() {
+            if (autoSyncInterval) clearInterval(autoSyncInterval);
+            if (!isCloudConfigured()) return;
+            // Sync toutes les 15 secondes quand cloud est configure
+            autoSyncInterval = setInterval(autoSyncFromCloud, 15000);
+        }
+
         // --- Initialisation asynchrone ---
         document.addEventListener('DOMContentLoaded', async function() {
             await loadData();
@@ -1221,6 +1256,7 @@
             updateMyOwnChordSuggestions();
             updateSongCounter();
             updateCulteSelectedSongsList();
+            startAutoSync(); // Demarrer la sync automatique
         });
 
         // --- Modifie saveSong pour attendre la sauvegarde distante ---
@@ -1248,7 +1284,10 @@
             document.getElementById('songForm').reset();
             updateChordSuggestions();
             updateSongCounter();
-            alert('Voatahiry ny hiranao !');
+            showToast(isCloudConfigured()
+                ? 'Voatahiry sy nampielezaina amin\'ny rehetra !'
+                : 'Voatahiry eto an-toerana !', 'success');
+            switchToTab('songs'); // Retour a la liste apres sauvegarde
         }
 
         // --- Modifie deleteSong pour attendre la sauvegarde distante ---
@@ -1776,6 +1815,42 @@
         // Initialisation (gérée par le listener async ci-dessus)
 
         // Gestion des onglets
+        // --- Toast notification ---
+        function showToast(msg, type) {
+            let toast = document.getElementById('appToast');
+            if (!toast) {
+                toast = document.createElement('div');
+                toast.id = 'appToast';
+                toast.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:9999;padding:13px 28px;border-radius:30px;font-size:1rem;font-weight:600;box-shadow:0 4px 20px rgba(0,0,0,0.2);transition:opacity 0.4s;pointer-events:none;max-width:90vw;text-align:center;';
+                document.body.appendChild(toast);
+            }
+            if (type === 'success') { toast.style.background='#28a745'; toast.style.color='#fff'; }
+            else if (type === 'error') { toast.style.background='#dc3545'; toast.style.color='#fff'; }
+            else { toast.style.background='#333'; toast.style.color='#fff'; }
+            toast.textContent = msg;
+            toast.style.opacity = '1';
+            clearTimeout(toast._timeout);
+            toast._timeout = setTimeout(() => { toast.style.opacity = '0'; }, 3000);
+        }
+
+        // Changer d'onglet sans demander de code (usage interne apres sauvegarde)
+        function switchToTab(tabName) {
+            const tabs = document.querySelectorAll('.tab-content');
+            tabs.forEach(tab => tab.classList.remove('active'));
+            const navTabs = document.querySelectorAll('.nav-tab');
+            navTabs.forEach(tab => tab.classList.remove('active'));
+            document.getElementById(tabName + '-tab').classList.add('active');
+            // Activer le bon bouton de nav
+            const navBtns = document.querySelectorAll('.nav-tab');
+            navBtns.forEach(btn => {
+                if (btn.getAttribute('onclick') && btn.getAttribute('onclick').includes("'" + tabName + "'")) {
+                    btn.classList.add('active');
+                }
+            });
+            if (tabName === 'myown') displayMyOwnSongs();
+            if (tabName === 'stats') displayStats();
+        }
+
         function showTab(tabName) {
             // Si on veut ouvrir "Créer une Chanson", demander le code avant d'afficher
             if (tabName === 'create') {
@@ -1797,9 +1872,11 @@
             const navTabs = document.querySelectorAll('.nav-tab');
             navTabs.forEach(tab => tab.classList.remove('active'));
             
-            // Afficher l'onglet sélectionné
+            // Afficher l'onglet selectionne
             document.getElementById(tabName + '-tab').classList.add('active');
-            event.target.classList.add('active');
+            if (typeof event !== 'undefined' && event && event.target) {
+                event.target.classList.add('active');
+            }
             if (tabName === 'myown') displayMyOwnSongs();
             if (tabName === 'stats') displayStats();
             if (tabName === 'culte') showCulteSongsList();
