@@ -693,9 +693,17 @@
 <body>
     <div class="container">
         <header>
-            <h1>🎵 HIRA SY ACCORD BATISTA AMBOHITRARAHABA</h1>
-            <p class="subtitle">Ahitana ireo hira hira sy accord ao amin'ny fiangonana Batista Ambohitrarahaba</p>
+            <h1>🎵 HIRA SY ACCORD</h1>
+            <p class="subtitle">Ahitana ireo hira hira sy accord ao anaty ffpm</p>
             <div id="songCounter" style="margin-top:10px; color:#fff; font-weight:bold; font-size:1.1rem;"></div>
+            <div style="margin-top:10px; display:flex; align-items:center; justify-content:center; gap:12px; flex-wrap:wrap;">
+                <div id="syncStatus" style="font-size:0.95rem; color:#fff; background:rgba(0,0,0,0.2); padding:5px 14px; border-radius:20px;">
+                    ⏳ Fanamarinana...
+                </div>
+                <button type="button" onclick="openCloudSetup()" style="background:rgba(255,255,255,0.2); font-size:0.85rem; padding:6px 14px; border:1px solid rgba(255,255,255,0.4);">
+                    ☁️ Configurer la base en ligne
+                </button>
+            </div>
         </header>
 
         <div class="nav-tabs">
@@ -911,6 +919,50 @@
 
     </div>
 
+    <!-- Modal Configuration Base de Données en Ligne -->
+    <div id="cloudSetupModal" class="modal">
+        <div class="modal-content" style="max-width:600px;">
+            <span class="close" onclick="closeCloudSetup()">&times;</span>
+            <h2 style="margin-bottom:5px;">☁️ Base de données en ligne</h2>
+            <p style="color:#666; margin-bottom:20px; font-size:0.95rem;">
+                Connectez une base en ligne pour partager vos chansons entre tous vos appareils (téléphone, ordinateur, etc.).
+            </p>
+
+            <!-- Statut actuel -->
+            <div id="cloudStatusBox" style="padding:12px 16px; border-radius:10px; margin-bottom:20px; font-weight:600;"></div>
+
+            <!-- Instructions -->
+            <div style="background:#e7f3ff; border-left:4px solid #1976D2; padding:15px; border-radius:0 10px 10px 0; margin-bottom:20px;">
+                <div style="font-weight:bold; color:#1976D2; margin-bottom:10px;">📋 Comment faire (gratuit, 5 minutes) :</div>
+                <ol style="margin:0; padding-left:20px; line-height:2;">
+                    <li>Allez sur <a href="https://jsonbin.io" target="_blank" style="color:#1976D2; font-weight:bold;">jsonbin.io</a> et créez un compte gratuit</li>
+                    <li>Cliquez sur votre profil → <strong>"API Keys"</strong> → copiez votre clé</li>
+                    <li>Cliquez sur <strong>"+ Create Bin"</strong>, mettez <code style="background:#fff;padding:2px 5px;border-radius:4px;">{"songs":[]}</code> et cliquez Create</li>
+                    <li>Copiez le <strong>Bin ID</strong> qui apparaît (ex: <code style="background:#fff;padding:2px 5px;border-radius:4px;">68abc123...</code>)</li>
+                    <li>Collez les deux valeurs ci-dessous et cliquez <strong>Enregistrer</strong></li>
+                </ol>
+            </div>
+
+            <!-- Formulaire de config -->
+            <div class="form-group">
+                <label for="inputApiKey">🔑 API Key (X-Master-Key)</label>
+                <input type="text" id="inputApiKey" placeholder="$2a$10$..." autocomplete="off" spellcheck="false">
+            </div>
+            <div class="form-group">
+                <label for="inputBinId">🪣 Bin ID</label>
+                <input type="text" id="inputBinId" placeholder="68abc123def456..." autocomplete="off" spellcheck="false">
+            </div>
+
+            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                <button type="button" onclick="saveCloudConfig()" style="background:#28a745; flex:1;">💾 Enregistrer et connecter</button>
+                <button type="button" onclick="testCloudConnection()" style="background:#1976D2; flex:1;">🔍 Tester la connexion</button>
+                <button type="button" onclick="clearCloudConfig()" style="background:#dc3545; flex:1;">🗑️ Supprimer la config</button>
+            </div>
+
+            <div id="cloudTestResult" style="margin-top:15px; padding:10px; border-radius:8px; display:none;"></div>
+        </div>
+    </div>
+
     <!-- Modal pour visualiser les chansons -->
     <div id="songModal" class="modal">
         <div class="modal-content">
@@ -932,10 +984,97 @@
         let songFilterType = 'artist'; // 'artist' ou 'title'
         let selectedArtist = null;
 
-        // === Stockage LOCAL (localStorage) — base principale, toujours fiable ===
-        // === jsonbin.io (optionnel) — sauvegarde distante si configuré ===
-        const JSONBIN_API_KEY = ''; // Laisser vide pour désactiver la sauvegarde distante
-        const JSONBIN_BIN_ID  = ''; // Laisser vide pour désactiver la sauvegarde distante
+        // === Configuration base de données en ligne (stockée dans localStorage) ===
+        const LS_CONFIG_KEY   = 'hirabatista_cloud_key';
+        const LS_CONFIG_BIN   = 'hirabatista_cloud_bin';
+
+        function getApiKey()  { return localStorage.getItem(LS_CONFIG_KEY) || ''; }
+        function getBinId()   { return localStorage.getItem(LS_CONFIG_BIN)  || ''; }
+        function isCloudConfigured() {
+            const k = getApiKey(), b = getBinId();
+            return k.length > 5 && b.length > 5;
+        }
+
+        // --- Interface de configuration cloud ---
+        function openCloudSetup() {
+            document.getElementById('inputApiKey').value = getApiKey();
+            document.getElementById('inputBinId').value  = getBinId();
+            refreshCloudStatusBox();
+            document.getElementById('cloudTestResult').style.display = 'none';
+            document.getElementById('cloudSetupModal').style.display = 'block';
+        }
+        function closeCloudSetup() {
+            document.getElementById('cloudSetupModal').style.display = 'none';
+        }
+        function refreshCloudStatusBox() {
+            const box = document.getElementById('cloudStatusBox');
+            if (isCloudConfigured()) {
+                box.style.background = '#d4edda';
+                box.style.color = '#155724';
+                box.textContent = 'Base en ligne configuree - chansons partagees entre tous les appareils';
+            } else {
+                box.style.background = '#fff3cd';
+                box.style.color = '#856404';
+                box.textContent = 'Non configure - chansons sauvegardees seulement sur cet appareil';
+            }
+        }
+        function saveCloudConfig() {
+            const key = document.getElementById('inputApiKey').value.trim();
+            const bin = document.getElementById('inputBinId').value.trim();
+            if (!key || !bin) { alert('Veuillez remplir les deux champs.'); return; }
+            localStorage.setItem(LS_CONFIG_KEY, key);
+            localStorage.setItem(LS_CONFIG_BIN,  bin);
+            refreshCloudStatusBox();
+            updateSyncStatus('syncing');
+            saveData().then(() => {
+                closeCloudSetup();
+                alert('Configuration enregistree ! Vos chansons sont maintenant synchronisees en ligne.');
+            });
+        }
+        function clearCloudConfig() {
+            if (!confirm('Supprimer la configuration cloud ? Les chansons resteront en local.')) return;
+            localStorage.removeItem(LS_CONFIG_KEY);
+            localStorage.removeItem(LS_CONFIG_BIN);
+            refreshCloudStatusBox();
+            updateSyncStatus('local');
+        }
+        async function testCloudConnection() {
+            const key = document.getElementById('inputApiKey').value.trim();
+            const bin = document.getElementById('inputBinId').value.trim();
+            const box = document.getElementById('cloudTestResult');
+            box.style.display = 'block';
+            box.style.background = '#e7f3ff';
+            box.style.color = '#1976D2';
+            box.textContent = 'Test en cours...';
+            try {
+                const res = await fetch('https://api.jsonbin.io/v3/b/' + bin + '/latest', {
+                    headers: { 'X-Master-Key': key }
+                });
+                if (res.ok) {
+                    box.style.background = '#d4edda';
+                    box.style.color = '#155724';
+                    box.textContent = 'Connexion reussie ! Vous pouvez enregistrer.';
+                } else {
+                    box.style.background = '#f8d7da';
+                    box.style.color = '#721c24';
+                    box.textContent = 'Erreur : Cle ou Bin ID invalide. Verifiez vos informations.';
+                }
+            } catch(e) {
+                box.style.background = '#f8d7da';
+                box.style.color = '#721c24';
+                box.textContent = 'Connexion impossible. Verifiez votre connexion Internet.';
+            }
+        }
+
+        // --- Indicateur de synchronisation ---
+        function updateSyncStatus(state) {
+            const el = document.getElementById('syncStatus');
+            if (!el) return;
+            if (state === 'ok')           { el.textContent = 'En ligne - synchronise';            el.style.background = 'rgba(40,167,69,0.35)'; }
+            else if (state === 'syncing') { el.textContent = 'Synchronisation...';                el.style.background = 'rgba(0,0,0,0.2)'; }
+            else if (state === 'error')   { el.textContent = 'Erreur de synchro - sauvegarde local'; el.style.background = 'rgba(220,53,69,0.35)'; }
+            else                          { el.textContent = 'Hors ligne (local uniquement)';     el.style.background = 'rgba(255,193,7,0.35)'; }
+        }
 
         // --- Gestion du code de sécurité ---
         function getEditCode() {
@@ -967,68 +1106,58 @@
             alert("vita soa aman-tsara !");
         }
 
-        // --- Sauvegarde persistante : localStorage (principal) + jsonbin.io (optionnel) ---
+        // --- Sauvegarde : localStorage (cache rapide) + jsonbin.io (partage en ligne) ---
         const LS_KEY = 'hirabatista_songs';
 
         async function saveData() {
-            // 1. Toujours sauvegarder en localStorage (instantané, fiable, local)
+            // 1. Toujours sauvegarder en localStorage (instantane, fiable)
+            try { localStorage.setItem(LS_KEY, JSON.stringify(songs)); } catch(e) {}
+
+            // 2. Sauvegarde en ligne si configure
+            if (!isCloudConfigured()) return;
+            updateSyncStatus('syncing');
             try {
-                localStorage.setItem(LS_KEY, JSON.stringify(songs));
-            } catch (e) {
-                console.error('Erreur localStorage :', e);
-            }
-            // 2. Sauvegarde distante jsonbin.io (seulement si configuré)
-            if (JSONBIN_API_KEY && JSONBIN_BIN_ID &&
-                JSONBIN_API_KEY !== '' && JSONBIN_BIN_ID !== '') {
-                try {
-                    const data = { songs: songs };
-                    await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`, {
-                        method: 'PUT',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-Master-Key': JSONBIN_API_KEY
-                        },
-                        body: JSON.stringify(data)
-                    });
-                } catch (e) {
-                    // Silencieux : le localStorage a déjà sauvegardé
-                    console.warn('Sauvegarde distante échouée (non critique) :', e.message);
-                }
-            }
+                const res = await fetch('https://api.jsonbin.io/v3/b/' + getBinId(), {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', 'X-Master-Key': getApiKey() },
+                    body: JSON.stringify({ songs: songs })
+                });
+                if (res.ok) { updateSyncStatus('ok'); }
+                else        { updateSyncStatus('error'); }
+            } catch(e) { updateSyncStatus('error'); }
         }
 
         async function loadData() {
-            // 1. Essayer d'abord le localStorage (toujours disponible)
-            try {
-                const local = localStorage.getItem(LS_KEY);
-                if (local) {
-                    songs = JSON.parse(local) || [];
-                    return; // Chargement local réussi, pas besoin du distant
-                }
-            } catch (e) {
-                console.warn('Erreur lecture localStorage :', e);
-            }
-            // 2. Si localStorage vide et jsonbin configuré, essayer le distant
-            if (JSONBIN_API_KEY && JSONBIN_BIN_ID &&
-                JSONBIN_API_KEY !== '' && JSONBIN_BIN_ID !== '') {
+            // Si cloud configure, charger depuis le serveur en priorite
+            if (isCloudConfigured()) {
+                updateSyncStatus('syncing');
                 try {
-                    const res = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}/latest`, {
-                        headers: { 'X-Master-Key': JSONBIN_API_KEY }
+                    const res = await fetch('https://api.jsonbin.io/v3/b/' + getBinId() + '/latest', {
+                        headers: { 'X-Master-Key': getApiKey() }
                     });
                     if (res.ok) {
                         const json = await res.json();
                         songs = (json.record && json.record.songs) ? json.record.songs : [];
-                        // Mettre en cache dans localStorage
-                        localStorage.setItem(LS_KEY, JSON.stringify(songs));
+                        // Mettre en cache local
+                        try { localStorage.setItem(LS_KEY, JSON.stringify(songs)); } catch(e) {}
+                        updateSyncStatus('ok');
                         return;
+                    } else {
+                        updateSyncStatus('error');
                     }
-                } catch (e) {
-                    console.warn('Chargement distant échoué :', e.message);
+                } catch(e) {
+                    updateSyncStatus('error');
+                    // Fallback local si pas de reseau
                 }
+            } else {
+                updateSyncStatus('local');
             }
-            songs = [];
+            // Charger depuis le cache local si pas de cloud ou si erreur reseau
+            try {
+                const local = localStorage.getItem(LS_KEY);
+                songs = local ? JSON.parse(local) : [];
+            } catch(e) { songs = []; }
         }
-
         // --- Export/Import des chansons (version distante) ---
         async function exportSongs() {
             try {
@@ -1068,7 +1197,8 @@
                         });
                         await saveData();
                         displaySongs();
-                        alert(added + ' chansons importées et sauvegardées sur le serveur !');
+                        const dest = isCloudConfigured() ? 'en ligne (partage entre tous les appareils)' : 'en local sur cet appareil';
+                        alert(added + ' chanson(s) importee(s) et sauvegardee(s) ' + dest + ' !');
                         updateSongCounter();
                     } else {
                         alert('Fichier invalide.');
