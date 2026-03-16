@@ -701,7 +701,7 @@
                     ⏳ Fanamarinana...
                 </div>
                 <button type="button" onclick="openCloudSetup()" style="background:rgba(255,255,255,0.2); font-size:0.85rem; padding:6px 14px; border:1px solid rgba(255,255,255,0.4);">
-                    ☁️ Configurer la base en ligne
+                    🔥 Configurer Firebase
                 </button>
             </div>
         </header>
@@ -918,43 +918,50 @@
 
     </div>
 
-    <!-- Modal Configuration Base de Données en Ligne -->
+    <!-- Modal Configuration Firebase -->
     <div id="cloudSetupModal" class="modal">
         <div class="modal-content" style="max-width:600px;">
             <span class="close" onclick="closeCloudSetup()">&times;</span>
-            <h2 style="margin-bottom:5px;">☁️ Base de données en ligne</h2>
+            <h2 style="margin-bottom:5px;">🔥 Firebase Realtime Database</h2>
             <p style="color:#666; margin-bottom:20px; font-size:0.95rem;">
-                Connectez une base en ligne pour partager vos chansons entre tous vos appareils (téléphone, ordinateur, etc.).
+                Connectez Firebase pour partager vos chansons entre tous vos appareils (téléphone, ordinateur, etc.).
             </p>
 
             <!-- Statut actuel -->
             <div id="cloudStatusBox" style="padding:12px 16px; border-radius:10px; margin-bottom:20px; font-weight:600;"></div>
 
             <!-- Instructions -->
-            <div style="background:#e7f3ff; border-left:4px solid #1976D2; padding:15px; border-radius:0 10px 10px 0; margin-bottom:20px;">
-                <div style="font-weight:bold; color:#1976D2; margin-bottom:10px;">📋 Comment faire (gratuit, 5 minutes) :</div>
-                <ol style="margin:0; padding-left:20px; line-height:2;">
-                    <li>Allez sur <a href="https://jsonbin.io" target="_blank" style="color:#1976D2; font-weight:bold;">jsonbin.io</a> et créez un compte gratuit</li>
-                    <li>Cliquez sur votre profil → <strong>"API Keys"</strong> → copiez votre clé</li>
-                    <li>Cliquez sur <strong>"+ Create Bin"</strong>, mettez <code style="background:#fff;padding:2px 5px;border-radius:4px;">{"songs":[]}</code> et cliquez Create</li>
-                    <li>Copiez le <strong>Bin ID</strong> qui apparaît (ex: <code style="background:#fff;padding:2px 5px;border-radius:4px;">68abc123...</code>)</li>
+            <div style="background:#fff3e0; border-left:4px solid #ff9800; padding:15px; border-radius:0 10px 10px 0; margin-bottom:20px;">
+                <div style="font-weight:bold; color:#e65100; margin-bottom:10px;">📋 Comment configurer Firebase (gratuit, ~10 minutes) :</div>
+                <ol style="margin:0; padding-left:20px; line-height:2.2; font-size:0.95rem;">
+                    <li>Allez sur <a href="https://console.firebase.google.com" target="_blank" style="color:#e65100; font-weight:bold;">console.firebase.google.com</a> et créez un projet</li>
+                    <li>Dans le projet → <strong>Realtime Database</strong> → <strong>"Créer une base de données"</strong></li>
+                    <li>Choisissez <strong>"Commencer en mode test"</strong> (30 jours, puis modifiez les règles)</li>
+                    <li>Copiez l'<strong>URL de la base</strong> (ex: <code style="background:#fff;padding:2px 5px;border-radius:4px;">https://mon-projet-default-rtdb.firebaseio.com</code>)</li>
+                    <li>Allez dans <strong>Paramètres du projet</strong> → <strong>Comptes de service</strong> → <strong>Secrets de base de données</strong> → <strong>Afficher</strong> → copiez le secret</li>
                     <li>Collez les deux valeurs ci-dessous et cliquez <strong>Enregistrer</strong></li>
                 </ol>
+                <div style="margin-top:10px; padding:8px 12px; background:#fff8e1; border-radius:6px; font-size:0.88rem; color:#555;">
+                    💡 <strong>Règles recommandées</strong> (Realtime Database → Règles) après configuration :
+                    <code style="display:block;margin-top:4px;background:#fff;padding:6px;border-radius:4px;">{"rules":{".read":"auth != null",".write":"auth != null"}}</code>
+                    Ou pour usage simple (accès libre) :
+                    <code style="display:block;margin-top:4px;background:#fff;padding:6px;border-radius:4px;">{"rules":{".read":true,".write":true}}</code>
+                </div>
             </div>
 
             <!-- Formulaire de config -->
             <div class="form-group">
-                <label for="inputApiKey">🔑 API Key (X-Master-Key)</label>
-                <input type="text" id="inputApiKey" placeholder="$2a$10$..." autocomplete="off" spellcheck="false">
+                <label for="inputFirebaseUrl">🔗 URL de la base Firebase</label>
+                <input type="text" id="inputFirebaseUrl" placeholder="https://mon-projet-default-rtdb.firebaseio.com" autocomplete="off" spellcheck="false">
             </div>
             <div class="form-group">
-                <label for="inputBinId">🪣 Bin ID</label>
-                <input type="text" id="inputBinId" placeholder="68abc123def456..." autocomplete="off" spellcheck="false">
+                <label for="inputFirebaseSecret">🔑 Secret de la base de données</label>
+                <input type="password" id="inputFirebaseSecret" placeholder="Votre database secret Firebase..." autocomplete="off" spellcheck="false">
             </div>
 
             <div style="display:flex; gap:10px; flex-wrap:wrap;">
                 <button type="button" onclick="saveCloudConfig()" style="background:#28a745; flex:1;">💾 Enregistrer et connecter</button>
-                <button type="button" onclick="testCloudConnection()" style="background:#1976D2; flex:1;">🔍 Tester la connexion</button>
+                <button type="button" onclick="testCloudConnection()" style="background:#ff9800; flex:1;">🔍 Tester la connexion</button>
                 <button type="button" onclick="clearCloudConfig()" style="background:#dc3545; flex:1;">🗑️ Supprimer la config</button>
             </div>
 
@@ -983,21 +990,21 @@
         let songFilterType = 'artist'; // 'artist' ou 'title'
         let selectedArtist = null;
 
-        // === Configuration base de données en ligne (stockée dans localStorage) ===
-        const LS_CONFIG_KEY   = 'hirabatista_cloud_key';
-        const LS_CONFIG_BIN   = 'hirabatista_cloud_bin';
+        // === Configuration Firebase Realtime Database (stockée dans localStorage) ===
+        const LS_CONFIG_FB_URL    = 'hirabatista_firebase_url';
+        const LS_CONFIG_FB_SECRET = 'hirabatista_firebase_secret';
 
-        function getApiKey()  { return localStorage.getItem(LS_CONFIG_KEY) || ''; }
-        function getBinId()   { return localStorage.getItem(LS_CONFIG_BIN)  || ''; }
+        function getFirebaseUrl()    { return (localStorage.getItem(LS_CONFIG_FB_URL) || '').replace(/\/$/, ''); }
+        function getFirebaseSecret() { return localStorage.getItem(LS_CONFIG_FB_SECRET) || ''; }
         function isCloudConfigured() {
-            const k = getApiKey(), b = getBinId();
-            return k.length > 5 && b.length > 5;
+            const u = getFirebaseUrl(), s = getFirebaseSecret();
+            return u.length > 10 && s.length > 5;
         }
 
         // --- Interface de configuration cloud ---
         function openCloudSetup() {
-            document.getElementById('inputApiKey').value = getApiKey();
-            document.getElementById('inputBinId').value  = getBinId();
+            document.getElementById('inputFirebaseUrl').value    = getFirebaseUrl();
+            document.getElementById('inputFirebaseSecret').value = getFirebaseSecret();
             refreshCloudStatusBox();
             document.getElementById('cloudTestResult').style.display = 'none';
             document.getElementById('cloudSetupModal').style.display = 'block';
@@ -1018,51 +1025,49 @@
             }
         }
         function saveCloudConfig() {
-            const key = document.getElementById('inputApiKey').value.trim();
-            const bin = document.getElementById('inputBinId').value.trim();
-            if (!key || !bin) { alert('Veuillez remplir les deux champs.'); return; }
-            localStorage.setItem(LS_CONFIG_KEY, key);
-            localStorage.setItem(LS_CONFIG_BIN,  bin);
+            const url    = document.getElementById('inputFirebaseUrl').value.trim().replace(/\/$/, '');
+            const secret = document.getElementById('inputFirebaseSecret').value.trim();
+            if (!url || !secret) { alert('Veuillez remplir les deux champs.'); return; }
+            localStorage.setItem(LS_CONFIG_FB_URL,    url);
+            localStorage.setItem(LS_CONFIG_FB_SECRET, secret);
             refreshCloudStatusBox();
             updateSyncStatus('syncing');
             saveData().then(() => {
                 startAutoSync();
                 closeCloudSetup();
-                showToast('Configuration enregistree ! Sync automatique activee.', 'success');
+                showToast('Configuration Firebase enregistrée ! Sync automatique activée.', 'success');
             });
         }
         function clearCloudConfig() {
-            if (!confirm('Supprimer la configuration cloud ? Les chansons resteront en local.')) return;
-            localStorage.removeItem(LS_CONFIG_KEY);
-            localStorage.removeItem(LS_CONFIG_BIN);
+            if (!confirm('Supprimer la configuration Firebase ? Les chansons resteront en local.')) return;
+            localStorage.removeItem(LS_CONFIG_FB_URL);
+            localStorage.removeItem(LS_CONFIG_FB_SECRET);
             refreshCloudStatusBox();
             updateSyncStatus('local');
         }
         async function testCloudConnection() {
-            const key = document.getElementById('inputApiKey').value.trim();
-            const bin = document.getElementById('inputBinId').value.trim();
+            const url    = document.getElementById('inputFirebaseUrl').value.trim().replace(/\/$/, '');
+            const secret = document.getElementById('inputFirebaseSecret').value.trim();
             const box = document.getElementById('cloudTestResult');
             box.style.display = 'block';
             box.style.background = '#e7f3ff';
             box.style.color = '#1976D2';
             box.textContent = 'Test en cours...';
             try {
-                const res = await fetch('https://api.jsonbin.io/v3/b/' + bin + '/latest', {
-                    headers: { 'X-Master-Key': key }
-                });
+                const res = await fetch(`${url}/songs.json?auth=${secret}`);
                 if (res.ok) {
                     box.style.background = '#d4edda';
                     box.style.color = '#155724';
-                    box.textContent = 'Connexion reussie ! Vous pouvez enregistrer.';
+                    box.textContent = '✅ Connexion Firebase réussie ! Vous pouvez enregistrer.';
                 } else {
                     box.style.background = '#f8d7da';
                     box.style.color = '#721c24';
-                    box.textContent = 'Erreur : Cle ou Bin ID invalide. Verifiez vos informations.';
+                    box.textContent = '❌ Erreur : URL ou Secret invalide. Vérifiez vos informations.';
                 }
             } catch(e) {
                 box.style.background = '#f8d7da';
                 box.style.color = '#721c24';
-                box.textContent = 'Connexion impossible. Verifiez votre connexion Internet.';
+                box.textContent = '❌ Connexion impossible. Vérifiez votre connexion Internet.';
             }
         }
 
@@ -1106,21 +1111,21 @@
             alert("vita soa aman-tsara !");
         }
 
-        // --- Sauvegarde : localStorage (cache rapide) + jsonbin.io (partage en ligne) ---
+        // --- Sauvegarde : localStorage (cache rapide) + Firebase (partage en ligne) ---
         const LS_KEY = 'hirabatista_songs';
 
         async function saveData() {
             // 1. Toujours sauvegarder en localStorage (instantane, fiable)
             try { localStorage.setItem(LS_KEY, JSON.stringify(songs)); } catch(e) {}
 
-            // 2. Sauvegarde en ligne si configure
+            // 2. Sauvegarde Firebase si configure
             if (!isCloudConfigured()) return;
             updateSyncStatus('syncing');
             try {
-                const res = await fetch('https://api.jsonbin.io/v3/b/' + getBinId(), {
+                const res = await fetch(`${getFirebaseUrl()}/songs.json?auth=${getFirebaseSecret()}`, {
                     method: 'PUT',
-                    headers: { 'Content-Type': 'application/json', 'X-Master-Key': getApiKey() },
-                    body: JSON.stringify({ songs: songs })
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(songs)
                 });
                 if (res.ok) { updateSyncStatus('ok'); }
                 else        { updateSyncStatus('error'); }
@@ -1128,16 +1133,15 @@
         }
 
         async function loadData() {
-            // Si cloud configure, charger depuis le serveur en priorite
+            // Si Firebase configure, charger depuis le serveur en priorite
             if (isCloudConfigured()) {
                 updateSyncStatus('syncing');
                 try {
-                    const res = await fetch('https://api.jsonbin.io/v3/b/' + getBinId() + '/latest', {
-                        headers: { 'X-Master-Key': getApiKey() }
-                    });
+                    const res = await fetch(`${getFirebaseUrl()}/songs.json?auth=${getFirebaseSecret()}`);
                     if (res.ok) {
-                        const json = await res.json();
-                        songs = (json.record && json.record.songs) ? json.record.songs : [];
+                        const data = await res.json();
+                        // Firebase renvoie directement le tableau (ou null si vide)
+                        songs = Array.isArray(data) ? data : (data ? Object.values(data) : []);
                         // Mettre en cache local
                         try { localStorage.setItem(LS_KEY, JSON.stringify(songs)); } catch(e) {}
                         updateSyncStatus('ok');
@@ -1197,7 +1201,7 @@
                         });
                         await saveData();
                         displaySongs();
-                        const dest = isCloudConfigured() ? ' - synchronisees en ligne !' : ' - sauvegardees en local.';
+                        const dest = isCloudConfigured() ? ' - synchronisees sur Firebase !' : ' - sauvegardees en local.';
                         showToast(added + ' chanson(s) importee(s)' + dest, 'success');
                         updateSongCounter();
                     } else {
@@ -1215,16 +1219,14 @@
         let autoSyncInterval = null;
         let lastKnownCount = -1; // Pour detecter les changements
 
-        // Verifie si de nouvelles chansons sont disponibles en ligne et raffraichit silencieusement
+        // Verifie si de nouvelles chansons sont disponibles sur Firebase et raffraichit silencieusement
         async function autoSyncFromCloud() {
             if (!isCloudConfigured()) return;
             try {
-                const res = await fetch('https://api.jsonbin.io/v3/b/' + getBinId() + '/latest', {
-                    headers: { 'X-Master-Key': getApiKey() }
-                });
+                const res = await fetch(`${getFirebaseUrl()}/songs.json?auth=${getFirebaseSecret()}`);
                 if (!res.ok) return;
-                const json = await res.json();
-                const remoteSongs = (json.record && json.record.songs) ? json.record.songs : [];
+                const data = await res.json();
+                const remoteSongs = Array.isArray(data) ? data : (data ? Object.values(data) : []);
                 // Compare avec ce qu'on a en memoire
                 if (JSON.stringify(remoteSongs) !== JSON.stringify(songs)) {
                     songs = remoteSongs;
@@ -1284,7 +1286,7 @@
             updateChordSuggestions();
             updateSongCounter();
             showToast(isCloudConfigured()
-                ? 'Voatahiry sy nampielezaina amin\'ny rehetra !'
+                ? 'Voatahiry sy nampielezaina amin\'ny rehetra (Firebase) !'
                 : 'Voatahiry eto an-toerana !', 'success');
             switchToTab('songs'); // Retour a la liste apres sauvegarde
         }
