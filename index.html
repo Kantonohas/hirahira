@@ -1140,6 +1140,49 @@
             } catch(e) { updateSyncStatus('error'); }
         }
 
+        // --- Fusion intelligente des données (sans perdre les chansons) ---
+        function mergeRemoteData(remoteSongs) {
+            // remoteSongs : données du serveur (peuvent être vides ou partielles)
+            // songs : données locales actuelles
+            // Retourne l'union sans doublons
+            
+            if (!remoteSongs || !Array.isArray(remoteSongs)) remoteSongs = [];
+            
+            // Map local par ID pour détection de doublons
+            const localMap = new Map(songs.map(s => [s.id, s]));
+            
+            // Map remote par ID
+            const remoteMap = new Map(remoteSongs.map(s => [s.id, s]));
+            
+            // Fusion : garder les plus récentes versions
+            const merged = [];
+            const seen = new Set();
+            
+            // Ajouter d'abord toutes les chansons du serveur (priorité aux données distantes)
+            remoteSongs.forEach(remoteSong => {
+                const localSong = localMap.get(remoteSong.id);
+                if (localSong) {
+                    // Les deux existent : garder la plus récente
+                    const remoteDate = new Date(remoteSong.updatedAt || remoteSong.createdAt || 0);
+                    const localDate = new Date(localSong.updatedAt || localSong.createdAt || 0);
+                    merged.push(remoteDate >= localDate ? remoteSong : localSong);
+                } else {
+                    // Existe seulement en remote
+                    merged.push(remoteSong);
+                }
+                seen.add(remoteSong.id);
+            });
+            
+            // Ajouter les chansons locales qui n'existent pas en remote
+            songs.forEach(localSong => {
+                if (!seen.has(localSong.id)) {
+                    merged.push(localSong);
+                }
+            });
+            
+            return merged;
+        }
+
         async function loadData() {
             // Si cloud configure, charger depuis GitHub Gist en priorite
             if (isCloudConfigured()) {
@@ -1155,12 +1198,33 @@
                         const json = await res.json();
                         // Lire le contenu du fichier songs.json dans le Gist
                         const fileContent = json.files && json.files['songs.json'] && json.files['songs.json'].content;
+                        let remoteSongs = [];
                         if (fileContent) {
-                            const parsed = JSON.parse(fileContent);
-                            songs = parsed.songs ? parsed.songs : [];
-                        } else {
-                            songs = [];
+                            try {
+                                const parsed = JSON.parse(fileContent);
+                                remoteSongs = parsed.songs ? parsed.songs : [];
+                            } catch(e) {
+                                remoteSongs = [];
+                            }
                         }
+                        
+                        // Charger d'abord depuis le cache local
+                        let localSongs = [];
+                        try {
+                            const local = localStorage.getItem(LS_KEY);
+                            localSongs = local ? JSON.parse(local) : [];
+                        } catch(e) {
+                            localSongs = [];
+                        }
+                        
+                        // Fusionner local + remote intelligemment
+                        songs = mergeRemoteData(remoteSongs);
+                        
+                        // Si merge a ajouté des chansons locales manquantes en remote, synchroniser vers le serveur
+                        if (songs.length > remoteSongs.length) {
+                            await saveData();
+                        }
+                        
                         // Mettre en cache local
                         try { localStorage.setItem(LS_KEY, JSON.stringify(songs)); } catch(e) {}
                         updateSyncStatus('ok');
@@ -1181,6 +1245,7 @@
                 songs = local ? JSON.parse(local) : [];
             } catch(e) { songs = []; }
         }
+
         // --- Export/Import des chansons (version distante) ---
         async function exportSongs() {
             try {
@@ -1252,11 +1317,19 @@
                 const json = await res.json();
                 const fileContent = json.files && json.files['songs.json'] && json.files['songs.json'].content;
                 if (!fileContent) return;
-                const parsed = JSON.parse(fileContent);
-                const remoteSongs = parsed.songs ? parsed.songs : [];
-                // Compare avec ce qu'on a en memoire
-                if (JSON.stringify(remoteSongs) !== JSON.stringify(songs)) {
-                    songs = remoteSongs;
+                
+                let remoteSongs = [];
+                try {
+                    const parsed = JSON.parse(fileContent);
+                    remoteSongs = parsed.songs ? parsed.songs : [];
+                } catch(e) {
+                    remoteSongs = [];
+                }
+                
+                // Fusionner avec ce qu'on a en memoire
+                const merged = mergeRemoteData(remoteSongs);
+                if (JSON.stringify(merged) !== JSON.stringify(songs)) {
+                    songs = merged;
                     try { localStorage.setItem(LS_KEY, JSON.stringify(songs)); } catch(e) {}
                     displaySongs();
                     updateSongCounter();
