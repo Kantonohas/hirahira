@@ -1026,8 +1026,10 @@
             refreshCloudStatusBox();
             updateSyncStatus('syncing');
 
-            // IMPORTANT : lors de la premiere connexion, on CHARGE depuis le cloud
-            // sans jamais ecraser les donnees existantes avec une liste vide locale
+            // A la connexion : on CHARGE TOUJOURS depuis le cloud, on ne pousse JAMAIS.
+            // Seules les actions volontaires (ajouter/modifier/supprimer une chanson)
+            // peuvent ecrire sur le cloud. Cela empeche un nouvel utilisateur d'ecraser
+            // les donnees existantes avec sa liste vide.
             try {
                 const res = await fetch('https://api.github.com/gists/' + bin, {
                     headers: {
@@ -1035,43 +1037,32 @@
                         'Accept': 'application/vnd.github.v3+json'
                     }
                 });
-                if (res.ok) {
-                    const json = await res.json();
-                    const fileContent = json.files && json.files['songs.json'] && json.files['songs.json'].content;
-                    if (fileContent) {
-                        const parsed = JSON.parse(fileContent);
-                        const remoteSongs = parsed.songs ? parsed.songs : [];
-                        if (remoteSongs.length > 0) {
-                            // Le cloud a des chansons : on les charge, on NE POUSSE PAS
-                            songs = remoteSongs;
-                            try { localStorage.setItem(LS_KEY, JSON.stringify(songs)); } catch(e) {}
-                            displaySongs();
-                            updateSongCounter();
-                            updateSyncStatus('ok');
-                            startAutoSync();
-                            closeCloudSetup();
-                            showToast('Connecte ! ' + songs.length + ' chanson(s) chargee(s) depuis le cloud.', 'success');
-                            return;
-                        }
-                    }
-                    // Le cloud est vide ET l'utilisateur a des chansons en local : on pousse le local
-                    if (songs.length > 0) {
-                        await saveData();
-                        showToast('Connecte ! Vos chansons locales ont ete envoyees vers le cloud.', 'success');
-                    } else {
-                        updateSyncStatus('ok');
-                        showToast('Configuration enregistree ! Sync automatique activee.', 'success');
-                    }
-                } else {
+                if (!res.ok) {
                     updateSyncStatus('error');
-                    showToast('Erreur de connexion. Verifiez votre Token et Gist ID.', 'error');
+                    showToast('Erreur : Token ou Gist ID invalide.', 'error');
+                    closeCloudSetup();
+                    return;
                 }
+                const json = await res.json();
+                const fileContent = json.files && json.files['songs.json'] && json.files['songs.json'].content;
+                if (fileContent) {
+                    const parsed = JSON.parse(fileContent);
+                    songs = parsed.songs ? parsed.songs : [];
+                } else {
+                    songs = [];
+                }
+                try { localStorage.setItem(LS_KEY, JSON.stringify(songs)); } catch(e) {}
+                displaySongs();
+                updateSongCounter();
+                updateSyncStatus('ok');
+                startAutoSync();
+                closeCloudSetup();
+                showToast('Connecte ! ' + songs.length + ' chanson(s) chargee(s) depuis le cloud.', 'success');
             } catch(e) {
                 updateSyncStatus('error');
                 showToast('Connexion impossible. Verifiez votre connexion Internet.', 'error');
+                closeCloudSetup();
             }
-            startAutoSync();
-            closeCloudSetup();
         }
         function clearCloudConfig() {
             if (!confirm('Supprimer la configuration cloud ? Les chansons resteront en local.')) return;
