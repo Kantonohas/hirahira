@@ -689,6 +689,10 @@
         }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        /* L'onglet Hananampy hira est caché par défaut, montré par JS quand admin connecté */
+        .nav-tab[onclick*="'create'"] { display: none; }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -711,6 +715,7 @@
             <button class="nav-tab" onclick="showTab('myown')">⭐ Hamorona ny hirako manokana</button>
             <button class="nav-tab" onclick="showTab('create')">✍️ Hananampy hira</button>
             <button class="nav-tab" onclick="showTab('culte')">⛪ Créer un culte</button>
+            <button class="nav-tab" onclick="showTab('admin')" id="adminNavBtn">🔐 Admin</button>
         </div>
 
         <!-- Onglet Liste des Chansons -->
@@ -722,8 +727,8 @@
                 </div>
                 <input type="text" id="searchSongs" placeholder="🔍 Rechercher..." oninput="filterSongs()">
             </div>
-            <!-- Ajout des boutons d'export/import -->
-            <div style="margin:10px 0; display:flex; gap:10px;">
+            <!-- Ajout des boutons d'export/import (admin only) -->
+            <div id="adminExportImportBtns" style="margin:10px 0; display:none; gap:10px;">
                 <button type="button" onclick="exportSongs()" style="background:#1976D2;">⬇️ Hitahiry ny hira</button>
                 <button type="button" onclick="document.getElementById('importSongsInput').click()" style="background:#a5a728;">⬆️ Hampiditra hira</button>
                 <input type="file" id="importSongsInput" accept=".json" style="display:none" onchange="importSongs(event)">
@@ -738,10 +743,6 @@
                 <p>Ampiasao ity fombafanoratra ity raha te hanoratra hira sy accord :</p>
                 <div class="help-example">[SECTION: Couplet 1]<br>[C]Ohatra ny [Am]amin'ny hira [F]sy accords [G]<br>[C/E]Accord C miampy basse E</div>
                 <p>Ireo "Sections" misy : Couplet, Refrain, Bridge, Intro, Outro</p>
-            </div>
-
-            <div style="margin-bottom:15px;">
-                <button type="button" onclick="changeEditCode()" style="background:#1976D2;">🔑 Raha te hanova ny "code"</button>
             </div>
 
             
@@ -917,6 +918,56 @@
         </div>
 
     </div>
+
+        <!-- Onglet Admin -->
+        <div id="admin-tab" class="tab-content">
+            <div style="max-width:480px;margin:auto;">
+                <h2 style="margin-bottom:6px;">🔐 Espace Admin</h2>
+                <p style="color:#666;margin-bottom:20px;font-size:0.95rem;">Entrez le code admin pour accéder aux fonctions de modification.</p>
+
+                <!-- Zone saisie code (toujours visible) -->
+                <div id="adminLockBox" style="background:#f8f9fa;border-radius:14px;padding:24px;text-align:center;">
+                    <div style="font-size:2.5rem;margin-bottom:12px;">🔒</div>
+                    <div style="font-weight:700;font-size:1.1rem;margin-bottom:16px;color:#333;">Verrouillé</div>
+                    <input type="password" id="adminCodeInput" placeholder="Entrez le code admin" style="width:100%;text-align:center;font-size:1.2rem;letter-spacing:4px;margin-bottom:14px;" maxlength="20">
+                    <button type="button" onclick="tryAdminUnlock()" style="width:100%;background:linear-gradient(135deg,#667eea,#764ba2);">🔓 Déverrouiller</button>
+                </div>
+
+                <!-- Zone admin déverrouillée (cachée par défaut) -->
+                <div id="adminUnlockedBox" style="display:none;">
+                    <div style="background:#d4edda;color:#155724;border-radius:10px;padding:12px 18px;font-weight:700;margin-bottom:20px;text-align:center;">
+                        ✅ Admin connecté
+                        <button type="button" onclick="lockAdmin()" style="margin-left:14px;background:#dc3545;padding:6px 14px;font-size:0.88rem;">🔒 Se déconnecter</button>
+                    </div>
+
+                    <!-- Actions admin -->
+                    <div style="background:#fff;border-radius:12px;padding:20px;box-shadow:0 2px 10px rgba(0,0,0,0.07);margin-bottom:18px;">
+                        <div style="font-weight:700;color:#667eea;margin-bottom:14px;font-size:1rem;">📋 Actions sur les chansons</div>
+                        <div style="display:flex;flex-wrap:wrap;gap:10px;">
+                            <button type="button" onclick="adminGoCreate()" style="background:linear-gradient(135deg,#667eea,#764ba2);">✍️ Hanampy hira</button>
+                            <button type="button" onclick="exportSongs()" style="background:#1976D2;">⬇️ Hitahiry ny hira</button>
+                            <button type="button" onclick="document.getElementById('importSongsInput2').click()" style="background:#a5a728;">⬆️ Hampiditra hira</button>
+                            <input type="file" id="importSongsInput2" accept=".json" style="display:none" onchange="importSongs(event)">
+                        </div>
+                        <p style="margin-top:12px;color:#888;font-size:0.9rem;">Les boutons <strong>Hanova</strong> et <strong>Hamafa</strong> apparaissent directement sur chaque chanson dans les onglets HIRA et Hirako.</p>
+                    </div>
+
+                    <!-- Changer le code -->
+                    <div style="background:#fff;border-radius:12px;padding:20px;box-shadow:0 2px 10px rgba(0,0,0,0.07);">
+                        <div style="font-weight:700;color:#667eea;margin-bottom:14px;font-size:1rem;">🔑 Changer le code admin</div>
+                        <div class="form-group">
+                            <label>Nouveau code</label>
+                            <input type="password" id="newAdminCode1" placeholder="Nouveau code" maxlength="20">
+                        </div>
+                        <div class="form-group">
+                            <label>Confirmer le nouveau code</label>
+                            <input type="password" id="newAdminCode2" placeholder="Confirmer le code" maxlength="20">
+                        </div>
+                        <button type="button" onclick="changeAdminCode()" style="background:#28a745;width:100%;">💾 Enregistrer le nouveau code</button>
+                    </div>
+                </div>
+            </div>
+        </div>
 
     <!-- Modal Configuration Base de Données en Ligne -->
     <div id="cloudSetupModal" class="modal">
@@ -1112,35 +1163,71 @@
             else                          { el.textContent = 'Hors ligne (local uniquement)';     el.style.background = 'rgba(255,193,7,0.35)'; }
         }
 
-        // --- Gestion du code de sécurité ---
-        function getEditCode() {
-            return localStorage.getItem('hirabatista_edit_code') || '1234';
+        // --- Gestion du code admin ---
+        let adminUnlocked = false;
+
+        function getAdminCode() {
+            return localStorage.getItem('hirabatista_admin_code') || '0000';
         }
-        function setEditCode(newCode) {
-            localStorage.setItem('hirabatista_edit_code', newCode);
+        function setAdminCode(newCode) {
+            localStorage.setItem('hirabatista_admin_code', newCode);
         }
-        function changeEditCode() {
-            const oldCode = prompt("Hampidiro ilay code taloha :");
-            if (oldCode === null) return; // Annulation
-            if (oldCode !== getEditCode()) {
-                alert("diso ilay codinao taloha.");
-                return;
-            }
-            const newCode = prompt("Hampidiro ilay code vaovao:");
-            if (newCode === null) return; // Annulation
-            if (!newCode || newCode.length < 3) {
-                alert("Fohy loatra ny code-nao.");
-                return;
-            }
-            const confirmCode = prompt("Hamarino fanindroany :");
-            if (confirmCode === null) return; // Annulation
-            if (newCode !== confirmCode) {
-                alert("Tsy mifanaraka ireo code-nao.");
-                return;
-            }
-            setEditCode(newCode);
-            alert("vita soa aman-tsara !");
+        function isAdminUnlocked() {
+            return adminUnlocked;
         }
+        function tryAdminUnlock() {
+            const entered = document.getElementById('adminCodeInput').value;
+            if (entered === getAdminCode()) {
+                adminUnlocked = true;
+                document.getElementById('adminCodeInput').value = '';
+                document.getElementById('adminLockBox').style.display = 'none';
+                document.getElementById('adminUnlockedBox').style.display = 'block';
+                // Afficher les boutons admin partout
+                applyAdminVisibility();
+                showToast('Admin déverrouillé !', 'success');
+            } else {
+                showToast('Code incorrect.', 'error');
+                document.getElementById('adminCodeInput').value = '';
+            }
+        }
+        function lockAdmin() {
+            adminUnlocked = false;
+            document.getElementById('adminLockBox').style.display = 'block';
+            document.getElementById('adminUnlockedBox').style.display = 'none';
+            applyAdminVisibility();
+            showToast('Admin verrouillé.', 'success');
+        }
+        function changeAdminCode() {
+            const c1 = document.getElementById('newAdminCode1').value.trim();
+            const c2 = document.getElementById('newAdminCode2').value.trim();
+            if (!c1 || c1.length < 3) { showToast('Code trop court (min 3 caractères).', 'error'); return; }
+            if (c1 !== c2) { showToast('Les deux codes ne correspondent pas.', 'error'); return; }
+            setAdminCode(c1);
+            document.getElementById('newAdminCode1').value = '';
+            document.getElementById('newAdminCode2').value = '';
+            showToast('Code admin changé avec succès !', 'success');
+        }
+        function applyAdminVisibility() {
+            // Boutons hanova/hamafa dans les cards
+            document.querySelectorAll('.admin-only').forEach(el => {
+                el.style.display = adminUnlocked ? '' : 'none';
+            });
+            // Bouton export/import dans l'onglet songs
+            const expBtn = document.getElementById('adminExportImportBtns');
+            if (expBtn) expBtn.style.display = adminUnlocked ? 'flex' : 'none';
+            // Onglet "Hananampy hira" (create)
+            const createTab = document.querySelector('.nav-tab[onclick*="create"]');
+            if (createTab) createTab.style.display = adminUnlocked ? '' : 'none';
+        }
+        function adminGoCreate() {
+            switchToTab('create');
+            // Activer visuellement le bon onglet
+            document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+            const ct = document.querySelector('.nav-tab[onclick*="create"]');
+            if (ct) ct.classList.add('active');
+        }
+        // Compatibilité : getEditCode reste pour les autres appels éventuels
+        function getEditCode() { return getAdminCode(); }
 
         // --- Sauvegarde : localStorage (cache rapide) + GitHub Gist (partage en ligne) ---
         const LS_KEY = 'hirabatista_songs';
@@ -1317,6 +1404,7 @@
             updateMyOwnChordSuggestions();
             updateSongCounter();
             updateCulteSelectedSongsList();
+            applyAdminVisibility(); // Appliquer la visibilité admin au démarrage
             startAutoSync(); // Demarrer la sync automatique
         });
 
@@ -1353,15 +1441,6 @@
 
         // --- Modifie deleteSong pour attendre la sauvegarde distante ---
         async function deleteSong(id) {
-            const EDIT_CODE = getEditCode();
-            const userCode = prompt("Hampidiro ny code raha hamafa ny hira :");
-            if (userCode === null) {
-                return;
-            }
-            if (userCode !== EDIT_CODE) {
-                alert("Diso ny code ka tsy afaka mamafa ilay hira ianao.");
-                return;
-            }
             if (confirm('Tena te hamafa ity hira ity ve ianao ?')) {
                 const song = songs.find(s => s.id === id);
                 songs = songs.filter(s => s.id !== id);
@@ -1913,19 +1992,6 @@
         }
 
         function showTab(tabName) {
-            // Si on veut ouvrir "Créer une Chanson", demander le code avant d'afficher
-            if (tabName === 'create') {
-                const EDIT_CODE = getEditCode();
-                const userCode = prompt("Hampidiro ny code :");
-                if (userCode === null) {
-                    // Annulation : ne rien faire, ne rien afficher
-                    return;
-                }
-                if (userCode !== EDIT_CODE) {
-                    alert("Diso ny code.");
-                    return;
-                }
-            }
             // Masquer tous les onglets
             const tabs = document.querySelectorAll('.tab-content');
             tabs.forEach(tab => tab.classList.remove('active'));
@@ -1972,8 +2038,8 @@
                 <div class="song-preview">${preview}...</div>
                 <div class="song-actions">
                     <button class="btn-small" onclick="viewSong(${song.id})">👁️ Hijery</button>
-                    <button class="btn-small btn-edit" onclick="editSong(${song.id})">✏️ Hanova</button>
-                    <button class="btn-small btn-delete" onclick="deleteSong(${song.id})">🗑️ Hamafa</button>
+                    <button class="btn-small btn-edit admin-only" onclick="editSong(${song.id})" style="display:none;">✏️ Hanova</button>
+                    <button class="btn-small btn-delete admin-only" onclick="deleteSong(${song.id})" style="display:none;">🗑️ Hamafa</button>
                 </div>
             `;
             
@@ -1984,6 +2050,8 @@
             const songsList = document.getElementById('songsList');
             songsList.innerHTML = '';
             updateSongCounter();
+            // Après affichage, re-appliquer visibilité admin
+            setTimeout(applyAdminVisibility, 0);
 
             if (songFilterType === 'artist') {
                 if (!selectedArtist) {
@@ -2130,15 +2198,6 @@
         }
 
         function editSong(id) {
-            const EDIT_CODE = getEditCode();
-            const userCode = prompt("Ampidiro ny code raha hanova ny hira :");
-            if (userCode === null) {
-                return;
-            }
-            if (userCode !== EDIT_CODE) {
-                alert("Diso ny code-nao.");
-                return;
-            }
             const song = songs.find(s => s.id === id);
             if (!song) return;
 
@@ -2243,8 +2302,8 @@
                 <div class="song-preview">${preview}...</div>
                 <div class="song-actions">
                     <button class="btn-small" onclick="viewMyOwnSong(${song.id})">👁️ hijery</button>
-                    <button class="btn-small btn-edit" onclick="editMyOwnSong(${song.id})">✏️ hanova</button>
-                    <button class="btn-small btn-delete" onclick="deleteMyOwnSong(${song.id})">🗑️ hamafa</button>
+                    <button class="btn-small btn-edit admin-only" onclick="editMyOwnSong(${song.id})" style="display:none;">✏️ hanova</button>
+                    <button class="btn-small btn-delete admin-only" onclick="deleteMyOwnSong(${song.id})" style="display:none;">🗑️ hamafa</button>
                 </div>
             `;
             
@@ -2254,6 +2313,7 @@
         function displayMyOwnSongs() {
             const myOwnSongsList = document.getElementById('myOwnSongsList');
             myOwnSongsList.innerHTML = '';
+            setTimeout(applyAdminVisibility, 0);
 
             mySongs.slice().sort((a, b) => {
                 const ka = songSortKey(a), kb = songSortKey(b);
