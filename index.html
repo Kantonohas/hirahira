@@ -1197,7 +1197,7 @@
             applyAdminVisibility();
             showToast('Admin verrouillé.', 'success');
         }
-        function changeAdminCode() {
+        async function changeAdminCode() {
             const c1 = document.getElementById('newAdminCode1').value.trim();
             const c2 = document.getElementById('newAdminCode2').value.trim();
             if (!c1 || c1.length < 3) { showToast('Code trop court (min 3 caractères).', 'error'); return; }
@@ -1205,7 +1205,9 @@
             setAdminCode(c1);
             document.getElementById('newAdminCode1').value = '';
             document.getElementById('newAdminCode2').value = '';
-            showToast('Code admin changé avec succès !', 'success');
+            // Synchroniser immédiatement le nouveau code sur le cloud
+            await saveData();
+            showToast('Code admin changé et synchronisé sur tous les appareils !', 'success');
         }
         function applyAdminVisibility() {
             // Boutons hanova/hamafa dans les cards
@@ -1250,7 +1252,7 @@
                     body: JSON.stringify({
                         files: {
                             'songs.json': {
-                                content: JSON.stringify({ songs: songs })
+                                content: JSON.stringify({ songs: songs, adminCode: getAdminCode() })
                             }
                         }
                     })
@@ -1278,6 +1280,10 @@
                         if (fileContent) {
                             const parsed = JSON.parse(fileContent);
                             songs = parsed.songs ? parsed.songs : [];
+                            // Synchroniser le code admin depuis le cloud
+                            if (parsed.adminCode) {
+                                localStorage.setItem('hirabatista_admin_code', parsed.adminCode);
+                            }
                         } else {
                             songs = [];
                         }
@@ -1374,6 +1380,10 @@
                 if (!fileContent) return;
                 const parsed = JSON.parse(fileContent);
                 const remoteSongs = parsed.songs ? parsed.songs : [];
+                // Synchroniser le code admin depuis le cloud silencieusement
+                if (parsed.adminCode && parsed.adminCode !== getAdminCode()) {
+                    localStorage.setItem('hirabatista_admin_code', parsed.adminCode);
+                }
                 // Compare avec ce qu'on a en memoire
                 if (JSON.stringify(remoteSongs) !== JSON.stringify(songs)) {
                     songs = remoteSongs;
