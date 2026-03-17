@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hira batista ambohitrarahaba</title>
+    <title>hira BATISTA Ambohitrarahaba</title>
     <style>
         * {
             margin: 0;
@@ -690,8 +690,10 @@
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
-        /* L'onglet Hananampy hira est caché par défaut, montré par JS quand admin connecté */
-        .nav-tab[onclick*="'create'"] { display: none; }
+        /* Éléments admin cachés par défaut, visibles seulement si body.admin-mode */
+        body:not(.admin-mode) .admin-only { display: none !important; }
+        body:not(.admin-mode) .nav-tab[onclick*="'create'"] { display: none !important; }
+        body:not(.admin-mode) #adminExportImportBtns { display: none !important; }
     </style>
 </head>
 <body>
@@ -1210,16 +1212,13 @@
             showToast('Code admin changé et synchronisé sur tous les appareils !', 'success');
         }
         function applyAdminVisibility() {
-            // Boutons hanova/hamafa dans les cards
-            document.querySelectorAll('.admin-only').forEach(el => {
-                el.style.display = adminUnlocked ? '' : 'none';
-            });
-            // Bouton export/import dans l'onglet songs
-            const expBtn = document.getElementById('adminExportImportBtns');
-            if (expBtn) expBtn.style.display = adminUnlocked ? 'flex' : 'none';
-            // Onglet "Hananampy hira" (create)
-            const createTab = document.querySelector('.nav-tab[onclick*="create"]');
-            if (createTab) createTab.style.display = adminUnlocked ? '' : 'none';
+            // Une seule classe sur le body contrôle tout via CSS
+            // Pas besoin de boucler sur les éléments : les nouvelles cartes héritent automatiquement
+            if (adminUnlocked) {
+                document.body.classList.add('admin-mode');
+            } else {
+                document.body.classList.remove('admin-mode');
+            }
         }
         function adminGoCreate() {
             switchToTab('create');
@@ -2048,8 +2047,8 @@
                 <div class="song-preview">${preview}...</div>
                 <div class="song-actions">
                     <button class="btn-small" onclick="viewSong(${song.id})">👁️ Hijery</button>
-                    <button class="btn-small btn-edit admin-only" onclick="editSong(${song.id})" style="display:none;">✏️ Hanova</button>
-                    <button class="btn-small btn-delete admin-only" onclick="deleteSong(${song.id})" style="display:none;">🗑️ Hamafa</button>
+                    <button class="btn-small btn-edit admin-only" onclick="editSong(${song.id})">✏️ Hanova</button>
+                    <button class="btn-small btn-delete admin-only" onclick="deleteSong(${song.id})">🗑️ Hamafa</button>
                 </div>
             `;
             
@@ -2060,8 +2059,6 @@
             const songsList = document.getElementById('songsList');
             songsList.innerHTML = '';
             updateSongCounter();
-            // Après affichage, re-appliquer visibilité admin
-            setTimeout(applyAdminVisibility, 0);
 
             if (songFilterType === 'artist') {
                 if (!selectedArtist) {
@@ -2312,8 +2309,8 @@
                 <div class="song-preview">${preview}...</div>
                 <div class="song-actions">
                     <button class="btn-small" onclick="viewMyOwnSong(${song.id})">👁️ hijery</button>
-                    <button class="btn-small btn-edit admin-only" onclick="editMyOwnSong(${song.id})" style="display:none;">✏️ hanova</button>
-                    <button class="btn-small btn-delete admin-only" onclick="deleteMyOwnSong(${song.id})" style="display:none;">🗑️ hamafa</button>
+                    <button class="btn-small btn-edit admin-only" onclick="editMyOwnSong(${song.id})">✏️ hanova</button>
+                    <button class="btn-small btn-delete admin-only" onclick="deleteMyOwnSong(${song.id})">🗑️ hamafa</button>
                 </div>
             `;
             
@@ -2323,7 +2320,6 @@
         function displayMyOwnSongs() {
             const myOwnSongsList = document.getElementById('myOwnSongsList');
             myOwnSongsList.innerHTML = '';
-            setTimeout(applyAdminVisibility, 0);
 
             mySongs.slice().sort((a, b) => {
                 const ka = songSortKey(a), kb = songSortKey(b);
