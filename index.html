@@ -1009,340 +1009,483 @@
         </div>
     </div>
 
-    <!-- Modal Éditeur PDF -->
-    <div id="pdfEditorModal" style="display:none;position:fixed;z-index:2000;left:0;top:0;width:100%;height:100%;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);overflow-y:auto;">
-        <div style="background:#f0f2f5;min-height:100vh;display:flex;flex-direction:column;">
+    <!-- ═══════════════════════════════════════════════════════
+         ÉDITEUR PDF : Page A4 exacte + blocs déplaçables
+         ═══════════════════════════════════════════════════════ -->
+    <div id="pdfEditorModal" style="display:none;position:fixed;inset:0;z-index:3000;background:#2c2c2c;flex-direction:column;overflow:hidden;">
 
-            <!-- Barre d'outils -->
-            <div id="pdfToolbar" style="background:linear-gradient(135deg,#667eea,#764ba2);padding:12px 20px;display:flex;align-items:center;flex-wrap:wrap;gap:10px;position:sticky;top:0;z-index:10;box-shadow:0 2px 10px rgba(0,0,0,0.3);">
-                <span style="color:white;font-weight:700;font-size:1.05rem;margin-right:6px;">✏️ Éditeur PDF</span>
+        <!-- ── Barre d'outils ── -->
+        <div id="pdfToolbar" style="background:#1e1e2e;padding:10px 16px;display:flex;align-items:center;flex-wrap:wrap;gap:8px;border-bottom:2px solid #444;flex-shrink:0;">
 
-                <!-- Taille de police -->
-                <div style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.15);padding:5px 10px;border-radius:8px;">
-                    <label style="color:white;font-size:0.85rem;white-space:nowrap;">🔤 Taille texte</label>
-                    <button onclick="pdfChangeFontSize(-1)" style="background:rgba(255,255,255,0.2);padding:3px 10px;font-size:1rem;min-width:32px;">−</button>
-                    <span id="pdfFontSizeDisplay" style="color:white;font-weight:700;min-width:28px;text-align:center;">14</span>
-                    <button onclick="pdfChangeFontSize(1)" style="background:rgba(255,255,255,0.2);padding:3px 10px;font-size:1rem;min-width:32px;">+</button>
-                </div>
+            <span style="color:#a78bfa;font-weight:700;font-size:1rem;margin-right:4px;">📄 Éditeur PDF</span>
 
-                <!-- Taille police accords -->
-                <div style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.15);padding:5px 10px;border-radius:8px;">
-                    <label style="color:white;font-size:0.85rem;white-space:nowrap;">🎵 Taille accords</label>
-                    <button onclick="pdfChangeChordSize(-1)" style="background:rgba(255,255,255,0.2);padding:3px 10px;font-size:1rem;min-width:32px;">−</button>
-                    <span id="pdfChordSizeDisplay" style="color:white;font-weight:700;min-width:28px;text-align:center;">14</span>
-                    <button onclick="pdfChangeChordSize(1)" style="background:rgba(255,255,255,0.2);padding:3px 10px;font-size:1rem;min-width:32px;">+</button>
-                </div>
+            <!-- Séparateur -->
+            <div style="width:1px;height:26px;background:#444;"></div>
 
-                <!-- Colonnes -->
-                <div style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.15);padding:5px 10px;border-radius:8px;">
-                    <label style="color:white;font-size:0.85rem;white-space:nowrap;">📰 Colonnes</label>
-                    <button onclick="pdfSetColumns(1)" id="pdfCol1Btn" style="background:rgba(255,255,255,0.35);padding:3px 12px;font-weight:700;">1</button>
-                    <button onclick="pdfSetColumns(2)" id="pdfCol2Btn" style="background:rgba(255,255,255,0.15);padding:3px 12px;">2</button>
-                </div>
-
-                <!-- Marges -->
-                <div style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.15);padding:5px 10px;border-radius:8px;">
-                    <label style="color:white;font-size:0.85rem;white-space:nowrap;">↔️ Marges</label>
-                    <select id="pdfMarginsSelect" onchange="pdfUpdatePreview()" style="border-radius:6px;padding:3px 6px;font-size:0.88rem;background:white;border:none;">
-                        <option value="5">Étroites (5mm)</option>
-                        <option value="10" selected>Normales (10mm)</option>
-                        <option value="20">Larges (20mm)</option>
-                    </select>
-                </div>
-
-                <!-- Alignement titre -->
-                <div style="display:flex;align-items:center;gap:4px;background:rgba(255,255,255,0.15);padding:5px 10px;border-radius:8px;">
-                    <label style="color:white;font-size:0.85rem;white-space:nowrap;">📌 Titre</label>
-                    <button onclick="pdfSetTitleAlign('left')" id="pdfAlignLeft" title="Gauche" style="background:rgba(255,255,255,0.15);padding:3px 8px;">◀</button>
-                    <button onclick="pdfSetTitleAlign('center')" id="pdfAlignCenter" title="Centré" style="background:rgba(255,255,255,0.35);padding:3px 8px;font-weight:700;">■</button>
-                    <button onclick="pdfSetTitleAlign('right')" id="pdfAlignRight" title="Droite" style="background:rgba(255,255,255,0.15);padding:3px 8px;">▶</button>
-                </div>
-
-                <!-- Espace entre sections -->
-                <div style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.15);padding:5px 10px;border-radius:8px;">
-                    <label style="color:white;font-size:0.85rem;white-space:nowrap;">↕️ Espacement</label>
-                    <button onclick="pdfChangeSpacing(-2)" style="background:rgba(255,255,255,0.2);padding:3px 10px;font-size:1rem;min-width:32px;">−</button>
-                    <span id="pdfSpacingDisplay" style="color:white;font-weight:700;min-width:28px;text-align:center;">8</span>
-                    <button onclick="pdfChangeSpacing(2)" style="background:rgba(255,255,255,0.2);padding:3px 10px;font-size:1rem;min-width:32px;">+</button>
-                </div>
-
-                <div style="flex:1;"></div>
-
-                <!-- Boutons action -->
-                <button onclick="closePdfEditor()" style="background:rgba(255,255,255,0.2);padding:7px 16px;border:1px solid rgba(255,255,255,0.4);">✖ Fermer</button>
-                <button onclick="exportPdfFromEditor()" style="background:#28a745;padding:7px 18px;font-weight:700;box-shadow:0 2px 8px rgba(0,0,0,0.2);">⬇️ Télécharger PDF</button>
+            <!-- Police paroles -->
+            <div style="display:flex;align-items:center;gap:4px;">
+                <span style="color:#ccc;font-size:0.8rem;">🎵 Paroles</span>
+                <button onclick="pdfAdjust('lyricSize',-1)" class="pdfToolBtn">−</button>
+                <span id="pdfLyricSz" style="color:#fff;font-weight:700;min-width:26px;text-align:center;font-size:0.9rem;">13</span>
+                <button onclick="pdfAdjust('lyricSize',1)" class="pdfToolBtn">+</button>
             </div>
 
-            <!-- Zone aperçu -->
-            <div style="flex:1;display:flex;justify-content:center;align-items:flex-start;padding:30px 20px;">
-                <!-- Page A4 simulée -->
-                <div id="pdfPagePreview" style="background:white;box-shadow:0 4px 30px rgba(0,0,0,0.25);width:210mm;min-height:297mm;position:relative;transition:all 0.2s;">
-                    <div id="pdfPreviewContent" style="padding:10mm;box-sizing:border-box;font-family:'Courier New',monospace;"></div>
-                </div>
+            <!-- Police accords -->
+            <div style="display:flex;align-items:center;gap:4px;">
+                <span style="color:#ccc;font-size:0.8rem;">🎸 Accords</span>
+                <button onclick="pdfAdjust('chordSize',-1)" class="pdfToolBtn">−</button>
+                <span id="pdfChordSz" style="color:#fff;font-weight:700;min-width:26px;text-align:center;font-size:0.9rem;">12</span>
+                <button onclick="pdfAdjust('chordSize',1)" class="pdfToolBtn">+</button>
             </div>
+
+            <!-- Titre -->
+            <div style="display:flex;align-items:center;gap:4px;">
+                <span style="color:#ccc;font-size:0.8rem;">📌 Titre</span>
+                <button onclick="pdfAdjust('titleSize',-1)" class="pdfToolBtn">−</button>
+                <span id="pdfTitleSz" style="color:#fff;font-weight:700;min-width:26px;text-align:center;font-size:0.9rem;">20</span>
+                <button onclick="pdfAdjust('titleSize',1)" class="pdfToolBtn">+</button>
+            </div>
+
+            <div style="width:1px;height:26px;background:#444;"></div>
+
+            <!-- Marges -->
+            <div style="display:flex;align-items:center;gap:4px;">
+                <span style="color:#ccc;font-size:0.8rem;">↔ Marges</span>
+                <button onclick="pdfAdjust('margin',-2)" class="pdfToolBtn">−</button>
+                <span id="pdfMarginSz" style="color:#fff;font-weight:700;min-width:32px;text-align:center;font-size:0.9rem;">15mm</span>
+                <button onclick="pdfAdjust('margin',2)" class="pdfToolBtn">+</button>
+            </div>
+
+            <!-- Espacement blocs -->
+            <div style="display:flex;align-items:center;gap:4px;">
+                <span style="color:#ccc;font-size:0.8rem;">↕ Espacement</span>
+                <button onclick="pdfAdjust('blockGap',-2)" class="pdfToolBtn">−</button>
+                <span id="pdfBlockGap" style="color:#fff;font-weight:700;min-width:26px;text-align:center;font-size:0.9rem;">10</span>
+                <button onclick="pdfAdjust('blockGap',2)" class="pdfToolBtn">+</button>
+            </div>
+
+            <div style="width:1px;height:26px;background:#444;"></div>
+
+            <!-- Alignement titre -->
+            <div style="display:flex;align-items:center;gap:3px;">
+                <span style="color:#ccc;font-size:0.8rem;">Titre :</span>
+                <button onclick="pdfSetAlign('left')"   id="pdfAlL" class="pdfToolBtn" title="Gauche">⬅</button>
+                <button onclick="pdfSetAlign('center')" id="pdfAlC" class="pdfToolBtn pdfToolBtnActive" title="Centre">≡</button>
+                <button onclick="pdfSetAlign('right')"  id="pdfAlR" class="pdfToolBtn" title="Droite">➡</button>
+            </div>
+
+            <div style="flex:1"></div>
+
+            <span style="color:#888;font-size:0.78rem;font-style:italic;">✋ Glissez les blocs pour les réorganiser</span>
+
+            <button onclick="pdfReset()" style="background:#555;color:#fff;padding:5px 12px;border-radius:6px;border:none;cursor:pointer;font-size:0.85rem;">↺ Reset</button>
+            <button onclick="closePdfEditor()" style="background:#dc3545;color:#fff;padding:5px 12px;border-radius:6px;border:none;cursor:pointer;font-size:0.85rem;">✖ Fermer</button>
+            <button onclick="exportPdfNow()" id="pdfExportBtn" style="background:#28a745;color:#fff;padding:6px 18px;border-radius:6px;border:none;cursor:pointer;font-weight:700;font-size:0.95rem;">⬇ Télécharger PDF</button>
         </div>
-    </div>
 
-    <!-- Modale Éditeur PDF -->
-    <div id="pdfEditorModal" style="display:none;position:fixed;z-index:2000;left:0;top:0;width:100%;height:100%;background:rgba(0,0,0,0.7);overflow:auto;">
-        <div style="background:#f4f4f4;margin:20px auto;border-radius:16px;max-width:900px;width:95%;box-shadow:0 10px 40px rgba(0,0,0,0.3);display:flex;flex-direction:column;max-height:95vh;">
+        <style>
+            .pdfToolBtn {
+                background: #3a3a5c;
+                color: #fff;
+                border: 1px solid #555;
+                border-radius: 5px;
+                padding: 3px 9px;
+                cursor: pointer;
+                font-size: 0.95rem;
+                font-weight: 700;
+                line-height: 1.2;
+            }
+            .pdfToolBtn:hover { background: #5b5bba; }
+            .pdfToolBtnActive { background: #667eea !important; border-color: #667eea !important; }
 
-            <!-- Barre d'outils style Word -->
-            <div style="background:linear-gradient(135deg,#667eea,#764ba2);padding:14px 20px;border-radius:16px 16px 0 0;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
-                <span style="color:white;font-weight:700;font-size:1.1rem;">📄 Aperçu avant impression PDF</span>
-                <button onclick="closePdfEditor()" style="background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.4);color:white;padding:6px 14px;border-radius:8px;cursor:pointer;font-size:1rem;">✕ Fermer</button>
-            </div>
+            /* Page A4 dans l'éditeur */
+            #pdfA4Page {
+                background: white;
+                /* A4 = 210mm × 297mm. On scale pour tenir dans l'écran */
+                width: 794px;   /* 210mm @ 96dpi */
+                height: 1123px; /* 297mm @ 96dpi */
+                position: relative;
+                box-shadow: 0 0 0 3px #667eea, 0 8px 40px rgba(0,0,0,0.6);
+                flex-shrink: 0;
+                overflow: hidden;
+                box-sizing: border-box;
+            }
 
-            <!-- Contrôles de mise en forme -->
-            <div style="background:#fff;padding:12px 20px;border-bottom:2px solid #e0e0e0;display:flex;align-items:center;flex-wrap:wrap;gap:14px;">
+            /* Repères de bords (coins + lignes) */
+            #pdfA4Page::before {
+                content: '';
+                position: absolute;
+                inset: 0;
+                border: 2px solid rgba(102,126,234,0.25);
+                pointer-events: none;
+                z-index: 50;
+            }
 
-                <!-- Taille police paroles -->
-                <div style="display:flex;align-items:center;gap:6px;">
-                    <span style="font-size:0.85rem;color:#555;font-weight:600;">🎵 Paroles</span>
-                    <button onclick="changeFontSize('lyric',-1)" style="background:#e9ecef;color:#333;padding:4px 10px;border-radius:6px;font-weight:bold;box-shadow:none;">−</button>
-                    <span id="lyricFontSizeDisplay" style="min-width:34px;text-align:center;font-weight:700;color:#667eea;">14px</span>
-                    <button onclick="changeFontSize('lyric',1)" style="background:#e9ecef;color:#333;padding:4px 10px;border-radius:6px;font-weight:bold;box-shadow:none;">+</button>
+            /* Ligne de limite de page (rouge pointillée) */
+            .pdf-page-limit {
+                position: absolute;
+                left: 0; right: 0;
+                border-top: 2px dashed rgba(220,53,69,0.6);
+                pointer-events: none;
+                z-index: 40;
+            }
+            .pdf-page-limit-label {
+                position: absolute;
+                right: 4px;
+                top: -18px;
+                font-size: 10px;
+                color: rgba(220,53,69,0.8);
+                font-family: sans-serif;
+                pointer-events: none;
+            }
+
+            /* Blocs déplaçables */
+            .pdf-block {
+                cursor: grab;
+                user-select: none;
+                position: relative;
+                border: 1.5px dashed transparent;
+                border-radius: 4px;
+                transition: border-color 0.15s;
+            }
+            .pdf-block:hover {
+                border-color: rgba(102,126,234,0.5);
+                background: rgba(102,126,234,0.03);
+            }
+            .pdf-block.dragging {
+                opacity: 0.4;
+                border-color: #667eea;
+            }
+            .pdf-block.drag-over {
+                border-color: #28a745;
+                background: rgba(40,167,69,0.06);
+            }
+            .pdf-block-handle {
+                position: absolute;
+                left: -22px;
+                top: 50%;
+                transform: translateY(-50%);
+                color: rgba(102,126,234,0.5);
+                font-size: 14px;
+                cursor: grab;
+                display: none;
+            }
+            .pdf-block:hover .pdf-block-handle { display: block; }
+
+            /* Zone de drop entre blocs */
+            .pdf-drop-zone {
+                height: 6px;
+                border-radius: 3px;
+                transition: all 0.15s;
+                margin: 1px 0;
+            }
+            .pdf-drop-zone.drag-active {
+                height: 20px;
+                background: rgba(40,167,69,0.2);
+                border: 2px dashed #28a745;
+            }
+        </style>
+
+        <!-- Zone de travail scrollable -->
+        <div style="flex:1;overflow-y:auto;overflow-x:auto;padding:30px;display:flex;justify-content:center;align-items:flex-start;background:#2c2c2c;">
+
+            <!-- Indicateur de scale -->
+            <div style="position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.7);color:#aaa;font-size:0.75rem;padding:4px 12px;border-radius:20px;pointer-events:none;z-index:100;" id="pdfScaleInfo">Page A4 — déplacez les blocs avec la souris</div>
+
+            <!-- Page A4 -->
+            <div id="pdfA4Page">
+                <!-- Lignes de limite de page (affichées via JS) -->
+                <div id="pdfPageLimitLine" class="pdf-page-limit" style="top:1123px;">
+                    <span class="pdf-page-limit-label">⚠ Limite page 1</span>
                 </div>
 
-                <div style="width:1px;height:28px;background:#ddd;"></div>
-
-                <!-- Taille police accords -->
-                <div style="display:flex;align-items:center;gap:6px;">
-                    <span style="font-size:0.85rem;color:#555;font-weight:600;">🎸 Accords</span>
-                    <button onclick="changeFontSize('chord',-1)" style="background:#e9ecef;color:#333;padding:4px 10px;border-radius:6px;font-weight:bold;box-shadow:none;">−</button>
-                    <span id="chordFontSizeDisplay" style="min-width:34px;text-align:center;font-weight:700;color:#d63384;">13px</span>
-                    <button onclick="changeFontSize('chord',1)" style="background:#e9ecef;color:#333;padding:4px 10px;border-radius:6px;font-weight:bold;box-shadow:none;">+</button>
+                <!-- Contenu de la page (padding = marges) -->
+                <div id="pdfPageContent" style="padding:57px;box-sizing:border-box;height:100%;font-family:'Courier New',monospace;">
+                    <!-- Les blocs sont injectés ici par JS -->
                 </div>
-
-                <div style="width:1px;height:28px;background:#ddd;"></div>
-
-                <!-- Taille titre -->
-                <div style="display:flex;align-items:center;gap:6px;">
-                    <span style="font-size:0.85rem;color:#555;font-weight:600;">📌 Titre</span>
-                    <button onclick="changeFontSize('title',-1)" style="background:#e9ecef;color:#333;padding:4px 10px;border-radius:6px;font-weight:bold;box-shadow:none;">−</button>
-                    <span id="titleFontSizeDisplay" style="min-width:34px;text-align:center;font-weight:700;color:#333;">22px</span>
-                    <button onclick="changeFontSize('title',1)" style="background:#e9ecef;color:#333;padding:4px 10px;border-radius:6px;font-weight:bold;box-shadow:none;">+</button>
-                </div>
-
-                <div style="width:1px;height:28px;background:#ddd;"></div>
-
-                <!-- Colonnes -->
-                <div style="display:flex;align-items:center;gap:6px;">
-                    <span style="font-size:0.85rem;color:#555;font-weight:600;">📐 Colonnes</span>
-                    <button id="col1Btn" onclick="setColumns(1)" style="background:#667eea;color:white;padding:4px 12px;border-radius:6px;font-weight:700;box-shadow:none;">1</button>
-                    <button id="col2Btn" onclick="setColumns(2)" style="background:#e9ecef;color:#333;padding:4px 12px;border-radius:6px;font-weight:700;box-shadow:none;">2</button>
-                </div>
-
-                <div style="width:1px;height:28px;background:#ddd;"></div>
-
-                <!-- Marges -->
-                <div style="display:flex;align-items:center;gap:6px;">
-                    <span style="font-size:0.85rem;color:#555;font-weight:600;">↔ Marges</span>
-                    <button onclick="changeMargin(-5)" style="background:#e9ecef;color:#333;padding:4px 10px;border-radius:6px;font-weight:bold;box-shadow:none;">−</button>
-                    <span id="marginDisplay" style="min-width:38px;text-align:center;font-weight:700;color:#333;">15mm</span>
-                    <button onclick="changeMargin(5)" style="background:#e9ecef;color:#333;padding:4px 10px;border-radius:6px;font-weight:bold;box-shadow:none;">+</button>
-                </div>
-
-                <!-- Reset -->
-                <button onclick="resetPdfSettings()" style="background:#6c757d;color:white;padding:5px 12px;border-radius:6px;font-size:0.82rem;box-shadow:none;margin-left:auto;">↺ Reset</button>
-            </div>
-
-            <!-- Zone d'aperçu simulant une page A4 -->
-            <div style="overflow:auto;flex:1;padding:20px;background:#888;display:flex;justify-content:center;">
-                <div id="pdfPreviewPage" style="background:white;width:210mm;min-height:297mm;box-shadow:0 4px 20px rgba(0,0,0,0.4);padding:15mm;box-sizing:border-box;position:relative;">
-                    <div id="pdfPreviewContent"></div>
-                </div>
-            </div>
-
-            <!-- Bouton générer -->
-            <div style="background:#fff;padding:14px 20px;border-top:2px solid #e0e0e0;display:flex;justify-content:flex-end;gap:12px;border-radius:0 0 16px 16px;">
-                <button onclick="closePdfEditor()" style="background:#6c757d;color:white;padding:10px 22px;border-radius:10px;font-weight:600;box-shadow:none;">Annuler</button>
-                <button onclick="generatePdfFromEditor()" style="background:linear-gradient(135deg,#667eea,#764ba2);color:white;padding:10px 26px;border-radius:10px;font-weight:700;">📥 Télécharger le PDF</button>
             </div>
         </div>
     </div>
 
     <script>
-        // --- État éditeur PDF ---
-        let pdfState = {
-            fontSize: 14,
-            chordSize: 14,
-            columns: 1,
-            margins: 10,
-            titleAlign: 'center',
-            spacing: 8
-        };
+    // EDITEUR PDF - Page A4 + blocs deplagables
+    const PDF = {
+        lyricSize: 13, chordSize: 12, titleSize: 20,
+        margin: 15, blockGap: 10, titleAlign: 'center',
+    };
+    const MM_TO_PX = 96 / 25.4;
 
-        function openPdfEditor() {
-            // Initialiser l'état
-            pdfState = { fontSize: 14, chordSize: 14, columns: 1, margins: 10, titleAlign: 'center', spacing: 8 };
-            syncPdfToolbar();
-            pdfUpdatePreview();
-            document.getElementById('pdfEditorModal').style.display = 'block';
-        }
+    function openPdfEditor() {
+        PDF.lyricSize=13; PDF.chordSize=12; PDF.titleSize=20;
+        PDF.margin=15; PDF.blockGap=10; PDF.titleAlign='center';
+        pdfSyncToolbar();
+        pdfBuildBlocks();
+        document.getElementById('pdfEditorModal').style.display = 'flex';
+    }
 
-        function closePdfEditor() {
-            document.getElementById('pdfEditorModal').style.display = 'none';
-        }
+    function closePdfEditor() {
+        document.getElementById('pdfEditorModal').style.display = 'none';
+    }
 
-        function syncPdfToolbar() {
-            document.getElementById('pdfFontSizeDisplay').textContent = pdfState.fontSize;
-            document.getElementById('pdfChordSizeDisplay').textContent = pdfState.chordSize;
-            document.getElementById('pdfSpacingDisplay').textContent = pdfState.spacing;
-            document.getElementById('pdfMarginsSelect').value = pdfState.margins;
-            // Colonnes
-            document.getElementById('pdfCol1Btn').style.background = pdfState.columns === 1 ? 'rgba(255,255,255,0.45)' : 'rgba(255,255,255,0.15)';
-            document.getElementById('pdfCol1Btn').style.fontWeight = pdfState.columns === 1 ? '700' : '400';
-            document.getElementById('pdfCol2Btn').style.background = pdfState.columns === 2 ? 'rgba(255,255,255,0.45)' : 'rgba(255,255,255,0.15)';
-            document.getElementById('pdfCol2Btn').style.fontWeight = pdfState.columns === 2 ? '700' : '400';
-            // Alignement titre
-            ['left','center','right'].forEach(a => {
-                const btn = document.getElementById('pdfAlign' + a.charAt(0).toUpperCase() + a.slice(1));
-                if (btn) {
-                    btn.style.background = pdfState.titleAlign === a ? 'rgba(255,255,255,0.45)' : 'rgba(255,255,255,0.15)';
-                    btn.style.fontWeight = pdfState.titleAlign === a ? '700' : '400';
-                }
-            });
-        }
+    function pdfReset() {
+        PDF.lyricSize=13; PDF.chordSize=12; PDF.titleSize=20;
+        PDF.margin=15; PDF.blockGap=10; PDF.titleAlign='center';
+        pdfSyncToolbar();
+        pdfBuildBlocks();
+    }
 
-        function pdfChangeFontSize(delta) {
-            pdfState.fontSize = Math.max(8, Math.min(24, pdfState.fontSize + delta));
-            document.getElementById('pdfFontSizeDisplay').textContent = pdfState.fontSize;
-            pdfUpdatePreview();
-        }
-        function pdfChangeChordSize(delta) {
-            pdfState.chordSize = Math.max(8, Math.min(24, pdfState.chordSize + delta));
-            document.getElementById('pdfChordSizeDisplay').textContent = pdfState.chordSize;
-            pdfUpdatePreview();
-        }
-        function pdfSetColumns(n) {
-            pdfState.columns = n;
-            syncPdfToolbar();
-            pdfUpdatePreview();
-        }
-        function pdfSetTitleAlign(a) {
-            pdfState.titleAlign = a;
-            syncPdfToolbar();
-            pdfUpdatePreview();
-        }
-        function pdfChangeSpacing(delta) {
-            pdfState.spacing = Math.max(0, Math.min(30, pdfState.spacing + delta));
-            document.getElementById('pdfSpacingDisplay').textContent = pdfState.spacing;
-            pdfUpdatePreview();
-        }
+    function pdfSyncToolbar() {
+        document.getElementById('pdfLyricSz').textContent  = PDF.lyricSize;
+        document.getElementById('pdfChordSz').textContent  = PDF.chordSize;
+        document.getElementById('pdfTitleSz').textContent  = PDF.titleSize;
+        document.getElementById('pdfMarginSz').textContent = PDF.margin + 'mm';
+        document.getElementById('pdfBlockGap').textContent = PDF.blockGap;
+        ['L','C','R'].forEach(function(l) {
+            var btn = document.getElementById('pdfAl' + l);
+            if (!btn) return;
+            var active = (l==='L' && PDF.titleAlign==='left') ||
+                         (l==='C' && PDF.titleAlign==='center') ||
+                         (l==='R' && PDF.titleAlign==='right');
+            btn.classList.toggle('pdfToolBtnActive', active);
+        });
+    }
 
-        function buildPdfHtml() {
-            const song = window.currentSong;
-            if (!song) return '';
-            const transpose = window.currentTranspose || 0;
-            const lyrics = transpose !== 0 ? transposeLyrics(song.lyrics, transpose) : song.lyrics;
-            const key = document.getElementById('currentKey')?.textContent || song.key;
+    function pdfAdjust(prop, delta) {
+        if (prop === 'lyricSize')  PDF.lyricSize  = Math.max(7,  Math.min(28, PDF.lyricSize  + delta));
+        if (prop === 'chordSize')  PDF.chordSize  = Math.max(7,  Math.min(28, PDF.chordSize  + delta));
+        if (prop === 'titleSize')  PDF.titleSize  = Math.max(10, Math.min(40, PDF.titleSize  + delta));
+        if (prop === 'margin')     PDF.margin     = Math.max(5,  Math.min(40, PDF.margin     + delta));
+        if (prop === 'blockGap')   PDF.blockGap   = Math.max(0,  Math.min(40, PDF.blockGap   + delta));
+        pdfSyncToolbar();
+        pdfRefreshStyles();
+    }
 
-            const m = pdfState.margins;
-            const fs = pdfState.fontSize;
-            const cs = pdfState.chordSize;
-            const sp = pdfState.spacing;
-            const cols = pdfState.columns;
-            const ta = pdfState.titleAlign;
+    function pdfSetAlign(a) {
+        PDF.titleAlign = a;
+        pdfSyncToolbar();
+        pdfRefreshStyles();
+    }
 
-            let html = `
-                <div style="text-align:${ta};margin-bottom:${sp}px;">
-                    <div style="font-size:${fs + 4}px;font-weight:bold;font-family:sans-serif;">${song.title}</div>
-                    <div style="font-size:${fs - 1}px;color:#555;font-family:sans-serif;margin-top:3px;">${song.artist ? song.artist + ' — ' : ''}Tonalité : ${key}${transpose !== 0 ? ' (Transposé ' + (transpose > 0 ? '+' : '') + transpose + ')' : ''}</div>
-                </div>
-                <div style="${cols === 2 ? 'column-count:2;column-gap:20px;' : ''}font-size:${fs}px;">
-                    ${formatSongDisplayForPdf(lyrics, key, transpose, fs, cs, sp)}
-                </div>
-            `;
-            return html;
-        }
+    function pdfBuildBlocks() {
+        var song = window.currentSong;
+        if (!song) return;
+        var transpose = window.currentTranspose || 0;
+        var lyrics = transpose !== 0 ? transposeLyrics(song.lyrics, transpose) : song.lyrics;
+        var key = (document.getElementById('currentKey') || {}).textContent || song.key;
 
-        function formatSongDisplayForPdf(lyrics, key, transpose, fs, cs, sp) {
-            // Utilise formatSongDisplay existant mais réapplique les tailles de police
-            const raw = formatSongDisplay(lyrics, key, transpose);
-            // Injecter les tailles via un wrapper avec CSS variables
-            return raw;
-        }
+        var container = document.getElementById('pdfPageContent');
+        container.innerHTML = '';
 
-        function pdfUpdatePreview() {
-            const content = document.getElementById('pdfPreviewContent');
-            const m = pdfState.margins;
-            const fs = pdfState.fontSize;
-            const cs = pdfState.chordSize;
-            const sp = pdfState.spacing;
+        // Bloc titre
+        var titleBlock = document.createElement('div');
+        titleBlock.className = 'pdf-block';
+        titleBlock.dataset.blockId = 'title';
+        titleBlock.innerHTML =
+            '<span class="pdf-block-handle">&#8803;</span>' +
+            '<div class="pdf-title-el">' + song.title + '</div>' +
+            '<div class="pdf-subtitle-el">' +
+                (song.artist ? song.artist + ' — ' : '') +
+                'Tonalité : ' + key +
+                (transpose !== 0 ? ' (transposé ' + (transpose>0?'+':'') + transpose + ')' : '') +
+            '</div>';
+        container.appendChild(pdfMakeDropZone());
+        container.appendChild(titleBlock);
 
-            content.style.padding = m + 'mm';
-            content.style.fontSize = fs + 'px';
-
-            const html = buildPdfHtml();
-            content.innerHTML = html;
-
-            // Appliquer tailles aux accords et paroles dans l'aperçu
-            content.querySelectorAll('.chord-line').forEach(el => {
-                el.style.fontSize = cs + 'px';
-                el.style.marginBottom = '0px';
-            });
-            content.querySelectorAll('.lyric-line').forEach(el => {
-                el.style.fontSize = fs + 'px';
-                el.style.marginBottom = sp + 'px';
-            });
-            content.querySelectorAll('.section-label').forEach(el => {
-                el.style.fontSize = (fs + 1) + 'px';
-                el.style.marginTop = (sp + 4) + 'px';
-                el.style.marginBottom = '4px';
-            });
-        }
-
-        async function exportPdfFromEditor() {
-            const content = document.getElementById('pdfPreviewContent');
-            const clone = content.cloneNode(true);
-
-            // Appliquer les styles pour l'export
-            clone.querySelectorAll('.chord-line').forEach(el => {
-                el.style.fontSize = pdfState.chordSize + 'px';
-                el.style.pageBreakInside = 'avoid';
-                el.style.breakInside = 'avoid';
-            });
-            clone.querySelectorAll('.lyric-line').forEach(el => {
-                el.style.fontSize = pdfState.fontSize + 'px';
-                el.style.marginBottom = pdfState.spacing + 'px';
-                el.style.pageBreakInside = 'avoid';
-                el.style.breakInside = 'avoid';
-            });
-            clone.querySelectorAll('.section-label').forEach(el => {
-                el.style.fontSize = (pdfState.fontSize + 1) + 'px';
-                el.style.marginTop = (pdfState.spacing + 4) + 'px';
-            });
-            clone.querySelectorAll('.chord-lyrics-block').forEach(el => {
-                el.style.pageBreakInside = 'avoid';
-                el.style.breakInside = 'avoid';
-            });
-
-            const m = pdfState.margins;
-            const song = window.currentSong;
-
-            const opt = {
-                margin: [m, m, m, m],
-                filename: (song?.title || 'partition') + '.pdf',
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2, useCORS: true, scrollY: 0, logging: false },
-                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-                pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
-            };
-
-            const btn = document.querySelector('#pdfToolbar button:last-child');
-            btn.textContent = '⏳ Génération...';
-            btn.disabled = true;
-
-            try {
-                await html2pdf().set(opt).from(clone).save();
-                if (song) logStat('pdf', song);
-            } finally {
-                btn.textContent = '⬇️ Télécharger PDF';
-                btn.disabled = false;
+        // Parser les sections
+        var lines = lyrics.split('\n');
+        var sections = [];
+        var cur = null;
+        lines.forEach(function(line) {
+            if (line.startsWith('[SECTION:')) {
+                if (cur) sections.push(cur);
+                var m = line.match(/\[SECTION:\s*(.*?)\]/);
+                cur = { name: m ? m[1] : '', lines: [] };
+            } else {
+                if (!cur) cur = { name: null, lines: [] };
+                cur.lines.push(line);
             }
+        });
+        if (cur) sections.push(cur);
+
+        sections.forEach(function(section, idx) {
+            var raw = (section.name ? '[SECTION: ' + section.name + ']\n' : '') + section.lines.join('\n');
+            var html = formatSongDisplay(raw, key, transpose);
+            var block = document.createElement('div');
+            block.className = 'pdf-block';
+            block.dataset.blockId = 'section-' + idx;
+            block.innerHTML = '<span class="pdf-block-handle">&#8803;</span>' + html;
+            container.appendChild(pdfMakeDropZone());
+            container.appendChild(block);
+        });
+        container.appendChild(pdfMakeDropZone());
+
+        pdfInitDragDrop();
+        pdfRefreshStyles();
+    }
+
+    function pdfMakeDropZone() {
+        var dz = document.createElement('div');
+        dz.className = 'pdf-drop-zone';
+        return dz;
+    }
+
+    var pdfDragSrc = null;
+
+    function pdfInitDragDrop() {
+        var container = document.getElementById('pdfPageContent');
+        container.querySelectorAll('.pdf-block').forEach(function(block) {
+            block.setAttribute('draggable', 'true');
+            block.addEventListener('dragstart', function(e) {
+                pdfDragSrc = block;
+                setTimeout(function() { block.classList.add('dragging'); }, 0);
+                e.dataTransfer.effectAllowed = 'move';
+            });
+            block.addEventListener('dragend', function() {
+                block.classList.remove('dragging');
+                container.querySelectorAll('.pdf-drop-zone').forEach(function(dz) {
+                    dz.classList.remove('drag-active');
+                });
+                pdfDragSrc = null;
+                pdfUpdatePageLimit();
+            });
+        });
+
+        container.querySelectorAll('.pdf-drop-zone').forEach(function(dz) {
+            dz.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                container.querySelectorAll('.pdf-drop-zone').forEach(function(d) {
+                    d.classList.remove('drag-active');
+                });
+                dz.classList.add('drag-active');
+            });
+            dz.addEventListener('dragleave', function() {
+                dz.classList.remove('drag-active');
+            });
+            dz.addEventListener('drop', function(e) {
+                e.preventDefault();
+                if (!pdfDragSrc) return;
+                dz.classList.remove('drag-active');
+                // Inserer le bloc source juste apres cette drop zone
+                var nextEl = dz.nextSibling;
+                if (nextEl && nextEl !== pdfDragSrc) {
+                    container.insertBefore(pdfDragSrc, nextEl);
+                } else if (!nextEl) {
+                    container.appendChild(pdfDragSrc);
+                }
+                pdfDragSrc.classList.remove('dragging');
+                pdfUpdatePageLimit();
+            });
+        });
+    }
+
+    function pdfRefreshStyles() {
+        var container = document.getElementById('pdfPageContent');
+        if (!container) return;
+        var marginPx = PDF.margin * MM_TO_PX;
+        container.style.padding = marginPx + 'px';
+
+        container.querySelectorAll('.pdf-title-el').forEach(function(el) {
+            el.style.fontSize    = PDF.titleSize + 'px';
+            el.style.textAlign   = PDF.titleAlign;
+            el.style.fontWeight  = 'bold';
+            el.style.fontFamily  = 'sans-serif';
+            el.style.marginBottom = '2px';
+        });
+        container.querySelectorAll('.pdf-subtitle-el').forEach(function(el) {
+            el.style.fontSize    = Math.round(PDF.titleSize * 0.6) + 'px';
+            el.style.textAlign   = PDF.titleAlign;
+            el.style.color       = '#555';
+            el.style.fontFamily  = 'sans-serif';
+            el.style.marginBottom = (PDF.blockGap * 1.5) + 'px';
+        });
+        container.querySelectorAll('.pdf-block').forEach(function(block) {
+            block.style.marginBottom = PDF.blockGap + 'px';
+        });
+        container.querySelectorAll('.chord-line').forEach(function(el) {
+            el.style.fontSize   = PDF.chordSize + 'px';
+            el.style.lineHeight = '1.2';
+        });
+        container.querySelectorAll('.lyric-line').forEach(function(el) {
+            el.style.fontSize   = PDF.lyricSize + 'px';
+            el.style.lineHeight = '1.4';
+        });
+        container.querySelectorAll('.section-label').forEach(function(el) {
+            el.style.fontSize   = (PDF.lyricSize + 1) + 'px';
+            el.style.fontWeight = '700';
+            el.style.color      = '#764ba2';
+        });
+        pdfUpdatePageLimit();
+    }
+
+    function pdfUpdatePageLimit() {
+        var content = document.getElementById('pdfPageContent');
+        var page    = document.getElementById('pdfA4Page');
+        var line    = document.getElementById('pdfPageLimitLine');
+        if (!content || !page || !line) return;
+        var A4_H = 1123;
+        var h = content.scrollHeight;
+        if (h > A4_H) {
+            line.style.display = 'block';
+            line.style.top = A4_H + 'px';
+            page.style.height = (h + 60) + 'px';
+        } else {
+            line.style.display = 'none';
+            page.style.height = A4_H + 'px';
         }
+    }
+
+    async function exportPdfNow() {
+        var song = window.currentSong;
+        var content = document.getElementById('pdfPageContent');
+        if (content.scrollHeight > 1130) {
+            if (!confirm("Le contenu depasse une page A4. Le PDF risque d'avoir du texte coupe. Continuer ?")) return;
+        }
+        var btn = document.getElementById('pdfExportBtn');
+        btn.textContent = 'Generation...';
+        btn.disabled = true;
+
+        var clone = content.cloneNode(true);
+        clone.querySelectorAll('.pdf-block-handle, .pdf-drop-zone').forEach(function(el) { el.remove(); });
+        clone.querySelectorAll('.pdf-block').forEach(function(el) {
+            el.style.border = 'none';
+            el.style.background = 'transparent';
+            el.style.cursor = 'default';
+        });
+        clone.querySelectorAll('.chord-line').forEach(function(el) {
+            el.style.fontSize = PDF.chordSize + 'px';
+            el.style.pageBreakInside = 'avoid';
+            el.style.breakInside = 'avoid';
+        });
+        clone.querySelectorAll('.lyric-line').forEach(function(el) {
+            el.style.fontSize = PDF.lyricSize + 'px';
+            el.style.pageBreakInside = 'avoid';
+            el.style.breakInside = 'avoid';
+        });
+        clone.querySelectorAll('.chord-lyrics-block').forEach(function(el) {
+            el.style.pageBreakInside = 'avoid';
+            el.style.breakInside = 'avoid';
+        });
+
+        var m = PDF.margin;
+        var opt = {
+            margin:      [m, m, m, m],
+            filename:    (song ? song.title : 'partition') + '.pdf',
+            image:       { type: 'jpeg', quality: 0.99 },
+            html2canvas: { scale: 3, useCORS: true, scrollY: 0, logging: false, width: 794, windowWidth: 794 },
+            jsPDF:       { unit: 'mm', format: 'a4', orientation: 'portrait' },
+            pagebreak:   { mode: ['avoid-all', 'css', 'legacy'] }
+        };
+        try {
+            await html2pdf().set(opt).from(clone).save();
+            if (song) logStat('pdf', song);
+        } catch(e) {
+            alert('Erreur PDF : ' + e.message);
+        }
+        btn.textContent = 'Telecharger PDF';
+        btn.disabled = false;
+    }
     </script>
+
     <script>
         // Variables globales
         let songs = [];
