@@ -444,7 +444,7 @@
             margin: 5px 0;
         }
 
-        /* Impression PDF : pas de colonnes automatiques */
+        /* Ajout pour l'impression PDF */
         @media print {
             body, .modal-content, #songDisplay {
                 margin: 0 !important;
@@ -455,6 +455,23 @@
                 page-break-inside: avoid !important;
                 break-inside: avoid !important;
             }
+            #songDisplay {
+                column-count: 2;
+                column-gap: 40px;
+            }
+        }
+        .pdf-exporting #songDisplay {
+            margin-top: 0 !important;
+            padding-top: 0 !important;
+            column-count: 2;
+            column-gap: 40px;
+        }
+        .pdf-exporting .chord-line,
+        .pdf-exporting .lyric-line,
+        .pdf-exporting .section-separator,
+        .pdf-exporting .section-block {
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
         }
 
 
@@ -1003,488 +1020,15 @@
         <div class="modal-content">
             <span class="close" onclick="closeSongModal()">&times;</span>
             <div style="text-align:right; margin-bottom:10px;">
-                <button class="btn-small" id="downloadSongPdfBtn" onclick="openPdfEditor()" style="display:none;">📄 Hamadika ho "PDF"</button>
+                <button class="btn-small" id="downloadSongPdfBtn" onclick="downloadSongPdf()" style="display:none;">📄 Hamadika ho "PDF"</button>
             </div>
             <div id="songDisplay"></div>
         </div>
     </div>
 
-    <!-- ═══════════════════════════════════════════════════════
-         ÉDITEUR PDF : Page A4 exacte + blocs déplaçables
-         ═══════════════════════════════════════════════════════ -->
-    <div id="pdfEditorModal" style="display:none;position:fixed;inset:0;z-index:3000;background:#2c2c2c;flex-direction:column;overflow:hidden;">
-
-        <!-- ── Barre d'outils ── -->
-        <div id="pdfToolbar" style="background:#1e1e2e;padding:10px 16px;display:flex;align-items:center;flex-wrap:wrap;gap:8px;border-bottom:2px solid #444;flex-shrink:0;">
-
-            <span style="color:#a78bfa;font-weight:700;font-size:1rem;margin-right:4px;">📄 Éditeur PDF</span>
-
-            <!-- Séparateur -->
-            <div style="width:1px;height:26px;background:#444;"></div>
-
-            <!-- Police paroles -->
-            <div style="display:flex;align-items:center;gap:4px;">
-                <span style="color:#ccc;font-size:0.8rem;">🎵 Paroles</span>
-                <button onclick="pdfAdjust('lyricSize',-1)" class="pdfToolBtn">−</button>
-                <span id="pdfLyricSz" style="color:#fff;font-weight:700;min-width:26px;text-align:center;font-size:0.9rem;">13</span>
-                <button onclick="pdfAdjust('lyricSize',1)" class="pdfToolBtn">+</button>
-            </div>
-
-            <!-- Police accords -->
-            <div style="display:flex;align-items:center;gap:4px;">
-                <span style="color:#ccc;font-size:0.8rem;">🎸 Accords</span>
-                <button onclick="pdfAdjust('chordSize',-1)" class="pdfToolBtn">−</button>
-                <span id="pdfChordSz" style="color:#fff;font-weight:700;min-width:26px;text-align:center;font-size:0.9rem;">12</span>
-                <button onclick="pdfAdjust('chordSize',1)" class="pdfToolBtn">+</button>
-            </div>
-
-            <!-- Titre -->
-            <div style="display:flex;align-items:center;gap:4px;">
-                <span style="color:#ccc;font-size:0.8rem;">📌 Titre</span>
-                <button onclick="pdfAdjust('titleSize',-1)" class="pdfToolBtn">−</button>
-                <span id="pdfTitleSz" style="color:#fff;font-weight:700;min-width:26px;text-align:center;font-size:0.9rem;">20</span>
-                <button onclick="pdfAdjust('titleSize',1)" class="pdfToolBtn">+</button>
-            </div>
-
-            <div style="width:1px;height:26px;background:#444;"></div>
-
-            <!-- Marges -->
-            <div style="display:flex;align-items:center;gap:4px;">
-                <span style="color:#ccc;font-size:0.8rem;">↔ Marges</span>
-                <button onclick="pdfAdjust('margin',-2)" class="pdfToolBtn">−</button>
-                <span id="pdfMarginSz" style="color:#fff;font-weight:700;min-width:32px;text-align:center;font-size:0.9rem;">15mm</span>
-                <button onclick="pdfAdjust('margin',2)" class="pdfToolBtn">+</button>
-            </div>
-
-            <!-- Espacement blocs -->
-            <div style="display:flex;align-items:center;gap:4px;">
-                <span style="color:#ccc;font-size:0.8rem;">↕ Espacement</span>
-                <button onclick="pdfAdjust('blockGap',-2)" class="pdfToolBtn">−</button>
-                <span id="pdfBlockGap" style="color:#fff;font-weight:700;min-width:26px;text-align:center;font-size:0.9rem;">10</span>
-                <button onclick="pdfAdjust('blockGap',2)" class="pdfToolBtn">+</button>
-            </div>
-
-            <div style="width:1px;height:26px;background:#444;"></div>
-
-            <!-- Alignement titre -->
-            <div style="display:flex;align-items:center;gap:3px;">
-                <span style="color:#ccc;font-size:0.8rem;">Titre :</span>
-                <button onclick="pdfSetAlign('left')"   id="pdfAlL" class="pdfToolBtn" title="Gauche">⬅</button>
-                <button onclick="pdfSetAlign('center')" id="pdfAlC" class="pdfToolBtn pdfToolBtnActive" title="Centre">≡</button>
-                <button onclick="pdfSetAlign('right')"  id="pdfAlR" class="pdfToolBtn" title="Droite">➡</button>
-            </div>
-
-            <div style="flex:1"></div>
-
-            <span style="color:#888;font-size:0.78rem;font-style:italic;">✋ Glissez les blocs pour les réorganiser</span>
-
-            <button onclick="pdfReset()" style="background:#555;color:#fff;padding:5px 12px;border-radius:6px;border:none;cursor:pointer;font-size:0.85rem;">↺ Reset</button>
-            <button onclick="closePdfEditor()" style="background:#dc3545;color:#fff;padding:5px 12px;border-radius:6px;border:none;cursor:pointer;font-size:0.85rem;">✖ Fermer</button>
-            <button onclick="exportPdfNow()" id="pdfExportBtn" style="background:#28a745;color:#fff;padding:6px 18px;border-radius:6px;border:none;cursor:pointer;font-weight:700;font-size:0.95rem;">⬇ Télécharger PDF</button>
-        </div>
-
-        <style>
-            .pdfToolBtn {
-                background: #3a3a5c;
-                color: #fff;
-                border: 1px solid #555;
-                border-radius: 5px;
-                padding: 3px 9px;
-                cursor: pointer;
-                font-size: 0.95rem;
-                font-weight: 700;
-                line-height: 1.2;
-            }
-            .pdfToolBtn:hover { background: #5b5bba; }
-            .pdfToolBtnActive { background: #667eea !important; border-color: #667eea !important; }
-
-            /* Page A4 dans l'éditeur */
-            #pdfA4Page {
-                background: white;
-                /* A4 = 210mm × 297mm. On scale pour tenir dans l'écran */
-                width: 794px;   /* 210mm @ 96dpi */
-                height: 1123px; /* 297mm @ 96dpi */
-                position: relative;
-                box-shadow: 0 0 0 3px #667eea, 0 8px 40px rgba(0,0,0,0.6);
-                flex-shrink: 0;
-                overflow: hidden;
-                box-sizing: border-box;
-            }
-
-            /* Repères de bords (coins + lignes) */
-            #pdfA4Page::before {
-                content: '';
-                position: absolute;
-                inset: 0;
-                border: 2px solid rgba(102,126,234,0.25);
-                pointer-events: none;
-                z-index: 50;
-            }
-
-            /* Ligne de limite de page (rouge pointillée) */
-            .pdf-page-limit {
-                position: absolute;
-                left: 0; right: 0;
-                border-top: 2px dashed rgba(220,53,69,0.6);
-                pointer-events: none;
-                z-index: 40;
-            }
-            .pdf-page-limit-label {
-                position: absolute;
-                right: 4px;
-                top: -18px;
-                font-size: 10px;
-                color: rgba(220,53,69,0.8);
-                font-family: sans-serif;
-                pointer-events: none;
-            }
-
-            /* Blocs déplaçables */
-            .pdf-block {
-                cursor: grab;
-                user-select: none;
-                position: relative;
-                border: 1.5px dashed transparent;
-                border-radius: 4px;
-                transition: border-color 0.15s;
-            }
-            .pdf-block:hover {
-                border-color: rgba(102,126,234,0.5);
-                background: rgba(102,126,234,0.03);
-            }
-            .pdf-block.dragging {
-                opacity: 0.4;
-                border-color: #667eea;
-            }
-            .pdf-block.drag-over {
-                border-color: #28a745;
-                background: rgba(40,167,69,0.06);
-            }
-            .pdf-block-handle {
-                position: absolute;
-                left: -22px;
-                top: 50%;
-                transform: translateY(-50%);
-                color: rgba(102,126,234,0.5);
-                font-size: 14px;
-                cursor: grab;
-                display: none;
-            }
-            .pdf-block:hover .pdf-block-handle { display: block; }
-
-            /* Zone de drop entre blocs */
-            .pdf-drop-zone {
-                height: 6px;
-                border-radius: 3px;
-                transition: all 0.15s;
-                margin: 1px 0;
-            }
-            .pdf-drop-zone.drag-active {
-                height: 20px;
-                background: rgba(40,167,69,0.2);
-                border: 2px dashed #28a745;
-            }
-        </style>
-
-        <!-- Zone de travail scrollable -->
-        <div style="flex:1;overflow-y:auto;overflow-x:auto;padding:30px;display:flex;justify-content:center;align-items:flex-start;background:#2c2c2c;">
-
-            <!-- Indicateur de scale -->
-            <div style="position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.7);color:#aaa;font-size:0.75rem;padding:4px 12px;border-radius:20px;pointer-events:none;z-index:100;" id="pdfScaleInfo">Page A4 — déplacez les blocs avec la souris</div>
-
-            <!-- Page A4 -->
-            <div id="pdfA4Page">
-                <!-- Lignes de limite de page (affichées via JS) -->
-                <div id="pdfPageLimitLine" class="pdf-page-limit" style="top:1123px;">
-                    <span class="pdf-page-limit-label">⚠ Limite page 1</span>
-                </div>
-
-                <!-- Contenu de la page (padding = marges) -->
-                <div id="pdfPageContent" style="padding:57px;box-sizing:border-box;height:100%;font-family:'Courier New',monospace;">
-                    <!-- Les blocs sont injectés ici par JS -->
-                </div>
-            </div>
-        </div>
     </div>
 
-    <script>
-    // EDITEUR PDF - Page A4 + blocs deplagables
-    const PDF = {
-        lyricSize: 13, chordSize: 12, titleSize: 20,
-        margin: 15, blockGap: 10, titleAlign: 'center',
-    };
-    const MM_TO_PX = 96 / 25.4;
 
-    function openPdfEditor() {
-        PDF.lyricSize=13; PDF.chordSize=12; PDF.titleSize=20;
-        PDF.margin=15; PDF.blockGap=10; PDF.titleAlign='center';
-        pdfSyncToolbar();
-        pdfBuildBlocks();
-        document.getElementById('pdfEditorModal').style.display = 'flex';
-    }
-
-    function closePdfEditor() {
-        document.getElementById('pdfEditorModal').style.display = 'none';
-    }
-
-    function pdfReset() {
-        PDF.lyricSize=13; PDF.chordSize=12; PDF.titleSize=20;
-        PDF.margin=15; PDF.blockGap=10; PDF.titleAlign='center';
-        pdfSyncToolbar();
-        pdfBuildBlocks();
-    }
-
-    function pdfSyncToolbar() {
-        document.getElementById('pdfLyricSz').textContent  = PDF.lyricSize;
-        document.getElementById('pdfChordSz').textContent  = PDF.chordSize;
-        document.getElementById('pdfTitleSz').textContent  = PDF.titleSize;
-        document.getElementById('pdfMarginSz').textContent = PDF.margin + 'mm';
-        document.getElementById('pdfBlockGap').textContent = PDF.blockGap;
-        ['L','C','R'].forEach(function(l) {
-            var btn = document.getElementById('pdfAl' + l);
-            if (!btn) return;
-            var active = (l==='L' && PDF.titleAlign==='left') ||
-                         (l==='C' && PDF.titleAlign==='center') ||
-                         (l==='R' && PDF.titleAlign==='right');
-            btn.classList.toggle('pdfToolBtnActive', active);
-        });
-    }
-
-    function pdfAdjust(prop, delta) {
-        if (prop === 'lyricSize')  PDF.lyricSize  = Math.max(7,  Math.min(28, PDF.lyricSize  + delta));
-        if (prop === 'chordSize')  PDF.chordSize  = Math.max(7,  Math.min(28, PDF.chordSize  + delta));
-        if (prop === 'titleSize')  PDF.titleSize  = Math.max(10, Math.min(40, PDF.titleSize  + delta));
-        if (prop === 'margin')     PDF.margin     = Math.max(5,  Math.min(40, PDF.margin     + delta));
-        if (prop === 'blockGap')   PDF.blockGap   = Math.max(0,  Math.min(40, PDF.blockGap   + delta));
-        pdfSyncToolbar();
-        pdfRefreshStyles();
-    }
-
-    function pdfSetAlign(a) {
-        PDF.titleAlign = a;
-        pdfSyncToolbar();
-        pdfRefreshStyles();
-    }
-
-    function pdfBuildBlocks() {
-        var song = window.currentSong;
-        if (!song) return;
-        var transpose = window.currentTranspose || 0;
-        var lyrics = transpose !== 0 ? transposeLyrics(song.lyrics, transpose) : song.lyrics;
-        var key = (document.getElementById('currentKey') || {}).textContent || song.key;
-
-        var container = document.getElementById('pdfPageContent');
-        container.innerHTML = '';
-
-        // Bloc titre
-        var titleBlock = document.createElement('div');
-        titleBlock.className = 'pdf-block';
-        titleBlock.dataset.blockId = 'title';
-        titleBlock.innerHTML =
-            '<span class="pdf-block-handle">&#8803;</span>' +
-            '<div class="pdf-title-el">' + song.title + '</div>' +
-            '<div class="pdf-subtitle-el">' +
-                (song.artist ? song.artist + ' — ' : '') +
-                'Tonalité : ' + key +
-                (transpose !== 0 ? ' (transposé ' + (transpose>0?'+':'') + transpose + ')' : '') +
-            '</div>';
-        container.appendChild(pdfMakeDropZone());
-        container.appendChild(titleBlock);
-
-        // Parser les sections
-        var lines = lyrics.split('\n');
-        var sections = [];
-        var cur = null;
-        lines.forEach(function(line) {
-            if (line.startsWith('[SECTION:')) {
-                if (cur) sections.push(cur);
-                var m = line.match(/\[SECTION:\s*(.*?)\]/);
-                cur = { name: m ? m[1] : '', lines: [] };
-            } else {
-                if (!cur) cur = { name: null, lines: [] };
-                cur.lines.push(line);
-            }
-        });
-        if (cur) sections.push(cur);
-
-        sections.forEach(function(section, idx) {
-            var raw = (section.name ? '[SECTION: ' + section.name + ']\n' : '') + section.lines.join('\n');
-            var html = formatSongDisplay(raw, key, transpose);
-            var block = document.createElement('div');
-            block.className = 'pdf-block';
-            block.dataset.blockId = 'section-' + idx;
-            block.innerHTML = '<span class="pdf-block-handle">&#8803;</span>' + html;
-            container.appendChild(pdfMakeDropZone());
-            container.appendChild(block);
-        });
-        container.appendChild(pdfMakeDropZone());
-
-        pdfInitDragDrop();
-        pdfRefreshStyles();
-    }
-
-    function pdfMakeDropZone() {
-        var dz = document.createElement('div');
-        dz.className = 'pdf-drop-zone';
-        return dz;
-    }
-
-    var pdfDragSrc = null;
-
-    function pdfInitDragDrop() {
-        var container = document.getElementById('pdfPageContent');
-        container.querySelectorAll('.pdf-block').forEach(function(block) {
-            block.setAttribute('draggable', 'true');
-            block.addEventListener('dragstart', function(e) {
-                pdfDragSrc = block;
-                setTimeout(function() { block.classList.add('dragging'); }, 0);
-                e.dataTransfer.effectAllowed = 'move';
-            });
-            block.addEventListener('dragend', function() {
-                block.classList.remove('dragging');
-                container.querySelectorAll('.pdf-drop-zone').forEach(function(dz) {
-                    dz.classList.remove('drag-active');
-                });
-                pdfDragSrc = null;
-                pdfUpdatePageLimit();
-            });
-        });
-
-        container.querySelectorAll('.pdf-drop-zone').forEach(function(dz) {
-            dz.addEventListener('dragover', function(e) {
-                e.preventDefault();
-                container.querySelectorAll('.pdf-drop-zone').forEach(function(d) {
-                    d.classList.remove('drag-active');
-                });
-                dz.classList.add('drag-active');
-            });
-            dz.addEventListener('dragleave', function() {
-                dz.classList.remove('drag-active');
-            });
-            dz.addEventListener('drop', function(e) {
-                e.preventDefault();
-                if (!pdfDragSrc) return;
-                dz.classList.remove('drag-active');
-                // Inserer le bloc source juste apres cette drop zone
-                var nextEl = dz.nextSibling;
-                if (nextEl && nextEl !== pdfDragSrc) {
-                    container.insertBefore(pdfDragSrc, nextEl);
-                } else if (!nextEl) {
-                    container.appendChild(pdfDragSrc);
-                }
-                pdfDragSrc.classList.remove('dragging');
-                pdfUpdatePageLimit();
-            });
-        });
-    }
-
-    function pdfRefreshStyles() {
-        var container = document.getElementById('pdfPageContent');
-        if (!container) return;
-        var marginPx = PDF.margin * MM_TO_PX;
-        container.style.padding = marginPx + 'px';
-
-        container.querySelectorAll('.pdf-title-el').forEach(function(el) {
-            el.style.fontSize    = PDF.titleSize + 'px';
-            el.style.textAlign   = PDF.titleAlign;
-            el.style.fontWeight  = 'bold';
-            el.style.fontFamily  = 'sans-serif';
-            el.style.marginBottom = '2px';
-        });
-        container.querySelectorAll('.pdf-subtitle-el').forEach(function(el) {
-            el.style.fontSize    = Math.round(PDF.titleSize * 0.6) + 'px';
-            el.style.textAlign   = PDF.titleAlign;
-            el.style.color       = '#555';
-            el.style.fontFamily  = 'sans-serif';
-            el.style.marginBottom = (PDF.blockGap * 1.5) + 'px';
-        });
-        container.querySelectorAll('.pdf-block').forEach(function(block) {
-            block.style.marginBottom = PDF.blockGap + 'px';
-        });
-        container.querySelectorAll('.chord-line').forEach(function(el) {
-            el.style.fontSize   = PDF.chordSize + 'px';
-            el.style.lineHeight = '1.2';
-        });
-        container.querySelectorAll('.lyric-line').forEach(function(el) {
-            el.style.fontSize   = PDF.lyricSize + 'px';
-            el.style.lineHeight = '1.4';
-        });
-        container.querySelectorAll('.section-label').forEach(function(el) {
-            el.style.fontSize   = (PDF.lyricSize + 1) + 'px';
-            el.style.fontWeight = '700';
-            el.style.color      = '#764ba2';
-        });
-        pdfUpdatePageLimit();
-    }
-
-    function pdfUpdatePageLimit() {
-        var content = document.getElementById('pdfPageContent');
-        var page    = document.getElementById('pdfA4Page');
-        var line    = document.getElementById('pdfPageLimitLine');
-        if (!content || !page || !line) return;
-        var A4_H = 1123;
-        var h = content.scrollHeight;
-        if (h > A4_H) {
-            line.style.display = 'block';
-            line.style.top = A4_H + 'px';
-            page.style.height = (h + 60) + 'px';
-        } else {
-            line.style.display = 'none';
-            page.style.height = A4_H + 'px';
-        }
-    }
-
-    async function exportPdfNow() {
-        var song = window.currentSong;
-        var content = document.getElementById('pdfPageContent');
-        if (content.scrollHeight > 1130) {
-            if (!confirm("Le contenu depasse une page A4. Le PDF risque d'avoir du texte coupe. Continuer ?")) return;
-        }
-        var btn = document.getElementById('pdfExportBtn');
-        btn.textContent = 'Generation...';
-        btn.disabled = true;
-
-        var clone = content.cloneNode(true);
-        clone.querySelectorAll('.pdf-block-handle, .pdf-drop-zone').forEach(function(el) { el.remove(); });
-        clone.querySelectorAll('.pdf-block').forEach(function(el) {
-            el.style.border = 'none';
-            el.style.background = 'transparent';
-            el.style.cursor = 'default';
-        });
-        clone.querySelectorAll('.chord-line').forEach(function(el) {
-            el.style.fontSize = PDF.chordSize + 'px';
-            el.style.pageBreakInside = 'avoid';
-            el.style.breakInside = 'avoid';
-        });
-        clone.querySelectorAll('.lyric-line').forEach(function(el) {
-            el.style.fontSize = PDF.lyricSize + 'px';
-            el.style.pageBreakInside = 'avoid';
-            el.style.breakInside = 'avoid';
-        });
-        clone.querySelectorAll('.chord-lyrics-block').forEach(function(el) {
-            el.style.pageBreakInside = 'avoid';
-            el.style.breakInside = 'avoid';
-        });
-
-        var m = PDF.margin;
-        var opt = {
-            margin:      [m, m, m, m],
-            filename:    (song ? song.title : 'partition') + '.pdf',
-            image:       { type: 'jpeg', quality: 0.99 },
-            html2canvas: { scale: 3, useCORS: true, scrollY: 0, logging: false, width: 794, windowWidth: 794 },
-            jsPDF:       { unit: 'mm', format: 'a4', orientation: 'portrait' },
-            pagebreak:   { mode: ['avoid-all', 'css', 'legacy'] }
-        };
-        try {
-            await html2pdf().set(opt).from(clone).save();
-            if (song) logStat('pdf', song);
-        } catch(e) {
-            alert('Erreur PDF : ' + e.message);
-        }
-        btn.textContent = 'Telecharger PDF';
-        btn.disabled = false;
-    }
-    </script>
 
     <script>
         // Variables globales
@@ -2680,6 +2224,33 @@
 
         function closeSongModal() {
             document.getElementById('songModal').style.display = 'none';
+        }
+
+        function downloadSongPdf() {
+            const display = document.getElementById('songDisplay');
+            const clone = display.cloneNode(true);
+            Array.from(clone.querySelectorAll('button,.btn-small')).forEach(btn => btn.remove());
+
+            document.body.classList.add('pdf-exporting');
+            clone.classList.add('pdf-exporting');
+
+            clone.querySelectorAll('.chord-line, .lyric-line, .section-separator, .section-block').forEach(el => {
+                el.style.pageBreakInside = 'avoid';
+                el.style.breakInside = 'avoid';
+            });
+
+            const opt = {
+                margin:       [5, 10, 5, 10],
+                filename:     (window.currentSong?.title || 'partition') + '.pdf',
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true, scrollY: 0 },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
+            };
+            html2pdf().set(opt).from(clone).save().then(() => {
+                document.body.classList.remove('pdf-exporting');
+            });
+            if (window.currentSong) logStat('pdf', window.currentSong);
         }
 
 
