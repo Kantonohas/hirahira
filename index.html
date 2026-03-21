@@ -3,478 +3,589 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestionnaire de Chansons et Accords</title>
+    <title>Hira sy Accord — Fiangonana Batista Ambohitrarahaba</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        /* ══════════════════════════════════════════════════
+           HIRA SY ACCORD — Light Professional Design
+           Inspired by modern SaaS / music platforms
+           ══════════════════════════════════════════════════ */
+        :root {
+            --bg:          #f4f6f9;
+            --bg-white:    #ffffff;
+            --surface:     #ffffff;
+            --surface2:    #f8f9fc;
+            --border:      #e2e6ef;
+            --border-mid:  #cbd2e0;
+            --navy:        #1a2645;
+            --navy2:       #243158;
+            --blue:        #2563eb;
+            --blue-light:  #3b82f6;
+            --blue-dim:    #eff4ff;
+            --blue-mid:    #dbeafe;
+            --gold:        #c9952a;
+            --gold-light:  #f0b429;
+            --gold-dim:    #fef9ec;
+            --text:        #1a2645;
+            --text-mid:    #4b5680;
+            --text-soft:   #8892aa;
+            --green:       #16a34a;
+            --green-dim:   #f0fdf4;
+            --red:         #dc2626;
+            --red-dim:     #fef2f2;
+            --amber:       #d97706;
+            --amber-dim:   #fffbeb;
+            --radius:      12px;
+            --radius-sm:   8px;
+            --radius-lg:   18px;
+            --radius-xl:   24px;
+            --shadow-sm:   0 1px 4px rgba(26,38,69,0.07);
+            --shadow:      0 4px 16px rgba(26,38,69,0.10);
+            --shadow-lg:   0 12px 40px rgba(26,38,69,0.15);
+            --transition:  all 0.22s cubic-bezier(0.4,0,0.2,1);
+            --font:        'Plus Jakarta Sans', system-ui, sans-serif;
+            --font-mono:   'JetBrains Mono', 'Courier New', monospace;
         }
 
-     body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: rgba(100, 48, 8, 0.965);
-            color: #333;
+        *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: var(--font);
+            background: var(--bg);
+            color: var(--text);
             min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            -webkit-font-smoothing: antialiased;
         }
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: var(--border-mid); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--blue-light); }
 
-        header {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 20px;
-            margin-bottom: 30px;
-            text-align: center;
-            border: 1px solid rgba(255, 255, 255, 0.2);
+        /* ── TOP BAR ──────────────────────────────────── */
+        .site-topbar {
+            background: var(--navy);
+            padding: 0 40px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 500;
+            box-shadow: 0 2px 12px rgba(26,38,69,0.25);
+            gap: 16px;
         }
-
-        h1 {
-            color: white;
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        .site-topbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
         }
-
-        .subtitle {
-            color: rgba(255, 255, 255, 0.8);
+        .site-topbar-logo {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--gold-light), var(--gold));
+            border-radius: 9px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             font-size: 1.1rem;
+            flex-shrink: 0;
+            box-shadow: 0 2px 8px rgba(201,149,42,0.35);
+        }
+        .site-topbar-name {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #ffffff;
+            letter-spacing: -0.01em;
+            line-height: 1.2;
+        }
+        .site-topbar-sub {
+            font-size: 0.7rem;
+            color: rgba(255,255,255,0.5);
+            font-weight: 400;
+            letter-spacing: 0.02em;
+        }
+        .site-topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
         }
 
+        /* ── HERO HEADER ──────────────────────────────── */
+        .site-hero {
+            background: linear-gradient(135deg, var(--navy) 0%, var(--navy2) 100%);
+            padding: 52px 40px 48px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .site-hero::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            pointer-events: none;
+        }
+        .site-hero-content { position: relative; z-index: 1; max-width: 700px; margin: 0 auto; }
+        .site-hero h1 {
+            font-size: 2.4rem;
+            font-weight: 800;
+            color: #ffffff;
+            line-height: 1.2;
+            margin-bottom: 10px;
+            letter-spacing: -0.02em;
+        }
+        .site-hero h1 .highlight {
+            color: var(--gold-light);
+        }
+        .site-hero .subtitle {
+            font-size: 1rem;
+            color: rgba(255,255,255,0.65);
+            font-weight: 400;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+        .hero-counter {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.18);
+            color: rgba(255,255,255,0.9);
+            font-weight: 600;
+            font-size: 0.88rem;
+            padding: 7px 20px;
+            border-radius: 30px;
+            backdrop-filter: blur(10px);
+        }
+        .hero-counter::before { content: '♪'; color: var(--gold-light); }
+
+        /* ── SYNC BADGE ───────────────────────────────── */
+        #syncStatus {
+            font-size: 0.78rem !important;
+            padding: 4px 12px !important;
+            border-radius: 30px !important;
+            font-weight: 500;
+            background: rgba(255,255,255,0.1) !important;
+            color: rgba(255,255,255,0.8) !important;
+            border: 1px solid rgba(255,255,255,0.2) !important;
+        }
+
+        /* ── MAIN LAYOUT ──────────────────────────────── */
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 32px 32px 40px;
+            flex: 1;
+        }
+
+        /* Header placeholder — keep for compat but hide */
+        header { display: none; }
+
+        /* ── NAV TABS ─────────────────────────────────── */
         .nav-tabs {
             display: flex;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
             padding: 5px;
-            margin-bottom: 30px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            margin-bottom: 24px;
+            gap: 3px;
+            box-shadow: var(--shadow-sm);
         }
 
         .nav-tab {
             flex: 1;
-            padding: 15px;
+            padding: 10px 14px;
             background: transparent;
             border: none;
-            color: white;
+            color: var(--text-mid);
             cursor: pointer;
-            border-radius: 10px;
-            transition: all 0.3s ease;
-            font-size: 1rem;
+            border-radius: var(--radius-sm);
+            transition: var(--transition);
+            font-size: 0.87rem;
             font-weight: 500;
+            font-family: var(--font);
+            white-space: nowrap;
+            letter-spacing: 0;
         }
 
         .nav-tab.active {
-            background: rgba(255, 255, 255, 0.2);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            background: var(--navy);
+            color: #ffffff;
+            box-shadow: var(--shadow);
         }
 
-        .nav-tab:hover {
-            background: rgba(255, 255, 255, 0.15);
+        .nav-tab:hover:not(.active) {
+            background: var(--bg);
+            color: var(--text);
         }
 
+        /* ── TAB PANELS ───────────────────────────────── */
         .tab-content {
             display: none;
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 32px;
+            box-shadow: var(--shadow);
         }
 
         .tab-content.active {
             display: block;
-            animation: fadeIn 0.5s ease;
+            animation: fadeUp 0.28s cubic-bezier(0.4,0,0.2,1);
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+        @keyframes fadeUp {
+            from { opacity:0; transform:translateY(12px); }
+            to   { opacity:1; transform:translateY(0); }
         }
 
-        .form-group {
-            margin-bottom: 20px;
-        }
+        /* ── FORMS ────────────────────────────────────── */
+        .form-group { margin-bottom: 20px; }
 
         label {
             display: block;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             font-weight: 600;
-            color: #555;
+            font-size: 0.82rem;
+            color: var(--text-mid);
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
         }
 
         input, textarea, select {
             width: 100%;
-            padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-            background: white;
+            padding: 11px 14px;
+            background: var(--surface2);
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: var(--text);
+            font-size: 0.93rem;
+            font-family: var(--font);
+            transition: var(--transition);
         }
 
         input:focus, textarea:focus, select:focus {
             outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            border-color: var(--blue);
+            box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
+            background: var(--bg-white);
         }
+
+        input::placeholder, textarea::placeholder { color: var(--text-soft); }
 
         textarea {
-            min-height: 120px;
+            min-height: 130px;
             resize: vertical;
-            font-family: 'Courier New', monospace;
-            line-height: 1.5;
+            font-family: var(--font-mono);
+            font-size: 0.88rem;
+            line-height: 1.65;
         }
 
-        .chord-input {
-            font-family: 'Courier New', monospace;
-            background: #f8f9fa;
-        }
+        .chord-input { font-family: var(--font-mono); background: var(--bg); }
 
+        /* ── BUTTONS ──────────────────────────────────── */
         button {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+            background: var(--navy);
+            color: #ffffff;
             border: none;
-            padding: 12px 25px;
-            border-radius: 10px;
+            padding: 11px 22px;
+            border-radius: var(--radius-sm);
             cursor: pointer;
-            font-size: 1rem;
+            font-size: 0.88rem;
             font-weight: 600;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+            font-family: var(--font);
+            transition: var(--transition);
+            letter-spacing: 0.01em;
         }
 
         button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+            background: var(--navy2);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow);
         }
 
+        button:active { transform: translateY(0); box-shadow: none; }
+
+        .btn-small {
+            padding: 6px 13px;
+            font-size: 0.80rem;
+            border-radius: 7px;
+            background: var(--blue);
+        }
+        .btn-small:hover { background: var(--blue-light); }
+
+        .btn-edit {
+            background: var(--amber) !important;
+            color: #ffffff !important;
+        }
+        .btn-edit:hover { background: #b45309 !important; }
+
+        .btn-delete {
+            background: var(--red) !important;
+        }
+        .btn-delete:hover { background: #b91c1c !important; }
+
+        /* ── SONG CARDS ───────────────────────────────── */
         .song-list {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+            gap: 16px;
             margin-top: 20px;
         }
 
         .song-card {
-            background: white;
-            border-radius: 15px;
-            padding: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            transition: all 0.3s ease;
-            border: 1px solid #e0e0e0;
+            background: var(--surface);
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px 20px 16px;
+            transition: var(--transition);
+            position: relative;
         }
 
         .song-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            border-color: var(--blue-light);
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-3px);
         }
 
         .song-title {
-            font-size: 1.3rem;
-            font-weight: bold;
-            color: #333;
-            margin-bottom: 8px;
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 4px;
+            line-height: 1.3;
         }
 
         .song-artist {
-            color: #666;
-            margin-bottom: 10px;
+            color: var(--text-soft);
+            font-size: 0.82rem;
+            margin-bottom: 12px;
+            font-weight: 400;
         }
 
         .song-key {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 4px 10px;
+            background: var(--blue-dim);
+            color: var(--blue);
+            border: 1px solid var(--blue-mid);
+            padding: 3px 10px;
             border-radius: 20px;
-            font-size: 0.8rem;
+            font-size: 0.73rem;
+            font-weight: 700;
             display: inline-block;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
         }
 
         .song-preview {
-            font-family: 'Courier New', monospace;
-            font-size: 0.9rem;
-            color: #555;
-            line-height: 1.4;
-            max-height: 60px;
+            font-family: var(--font-mono);
+            font-size: 0.78rem;
+            color: var(--text-soft);
+            line-height: 1.5;
+            max-height: 55px;
             overflow: hidden;
+            background: var(--surface2);
+            padding: 8px 10px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
         }
 
         .song-actions {
-            margin-top: 15px;
+            margin-top: 14px;
             display: flex;
-            gap: 10px;
+            gap: 7px;
+            flex-wrap: wrap;
         }
 
-        .btn-small {
-            padding: 8px 15px;
-            font-size: 0.9rem;
-            background: #28a745;
-        }
+        /* ── FILTER TABS ──────────────────────────────── */
+        .search-box { margin-bottom: 20px; }
 
-        .btn-edit {
-            background: #ffc107;
-            color: #333;
-        }
-
-        .btn-delete {
-            background: #dc3545;
-        }
-
-        .calendar {
-            background: white;
-            border-radius: 15px;
-            overflow: hidden;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
-
-        .calendar-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 20px;
-            text-align: center;
-            font-size: 1.2rem;
+        .filter-tab {
+            padding: 7px 16px;
+            border-radius: 30px;
+            font-size: 0.83rem;
             font-weight: 600;
-        }
-
-        .calendar-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-        }
-
-        .calendar-day {
-            aspect-ratio: 1;
-            border: 1px solid #e0e0e0;
-            padding: 10px;
+            background: var(--surface2);
+            color: var(--text-mid);
+            border: 1.5px solid var(--border);
             cursor: pointer;
-            transition: all 0.3s ease;
-            background: white;
+            transition: var(--transition);
+            box-shadow: none;
+            font-family: var(--font);
+        }
+        .filter-tab.active, .filter-tab:hover {
+            background: var(--navy);
+            color: #ffffff;
+            border-color: var(--navy);
         }
 
-        .calendar-day:hover {
-            background: #f8f9fa;
-        }
-
-        .calendar-day.has-event {
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
-            border-color: #667eea;
-        }
-
-        .event-dot {
-            width: 8px;
-            height: 8px;
-            background: #667eea;
-            border-radius: 50%;
-            margin: 2px;
-            display: inline-block;
-        }
-
+        /* ── SECTION LABELS ───────────────────────────── */
         .section-label {
-            font-weight: bold;
-            color: #667eea;
+            font-weight: 700;
+            color: var(--blue);
             margin-bottom: 5px;
             text-transform: uppercase;
-            font-size: 0.9rem;
+            font-size: 0.78rem;
+            letter-spacing: 0.12em;
         }
 
         .chord-line {
-            color: #d63384;
-            font-weight: bold;
-            font-family: 'Courier New', monospace;
+            color: #c026d3;
+            font-weight: 700;
+            font-family: var(--font-mono);
             margin-bottom: 2px;
         }
 
         .lyric-line {
-            color: #333;
-            font-family: 'Courier New', monospace;
+            color: var(--text);
+            font-family: var(--font-mono);
             margin-bottom: 10px;
         }
 
+        /* ── TRANSPOSITION ────────────────────────────── */
         .transposition-controls {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 10px;
-            margin: 15px 0;
+            background: var(--surface2);
+            border: 1.5px solid var(--border);
+            padding: 14px 18px;
+            border-radius: var(--radius-sm);
+            margin: 16px 0;
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 14px;
+            flex-wrap: wrap;
         }
 
         .key-display {
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: #667eea;
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--blue);
         }
 
         .transpose-btn {
-            padding: 8px 12px;
-            font-size: 0.9rem;
+            padding: 6px 12px;
+            font-size: 1rem;
             min-width: 40px;
+            border-radius: 7px;
+            background: var(--surface);
+            color: var(--text);
+            border: 1.5px solid var(--border);
         }
+        .transpose-btn:hover { background: var(--navy); color: #fff; border-color: var(--navy); }
 
+        /* ── MODALS ───────────────────────────────────── */
         .modal {
             display: none;
             position: fixed;
             z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.5);
-            backdrop-filter: blur(5px);
+            inset: 0;
+            background: rgba(26,38,69,0.55);
+            backdrop-filter: blur(6px);
         }
 
         .modal-content {
-            background: white;
-            margin: 50px auto;
-            padding: 30px;
-            border-radius: 20px;
-            width: 90%;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            margin: 36px auto;
+            padding: 32px;
+            border-radius: var(--radius-xl);
+            width: 92%;
             max-width: 1200px;
-            max-height: 80vh;
+            max-height: 85vh;
             overflow-y: auto;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            box-shadow: var(--shadow-lg);
         }
 
         .close {
-            color: #aaa;
+            color: var(--text-soft);
             float: right;
-            font-size: 28px;
-            font-weight: bold;
+            font-size: 24px;
+            font-weight: 300;
             cursor: pointer;
-            transition: color 0.3s ease;
+            transition: var(--transition);
+            line-height: 1;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+        }
+        .close:hover { background: var(--bg); color: var(--red); }
+
+        /* ── FORMAT HELP ──────────────────────────────── */
+        .format-help {
+            background: var(--blue-dim);
+            border-left: 3px solid var(--blue);
+            padding: 16px 20px;
+            margin: 16px 0;
+            border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
         }
 
-        .close:hover {
-            color: #333;
+        .help-title {
+            font-weight: 700;
+            color: var(--blue);
+            margin-bottom: 8px;
+            font-size: 0.88rem;
         }
 
-        .event-form {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 15px;
-            margin-bottom: 20px;
+        .help-example {
+            font-family: var(--font-mono);
+            background: var(--bg-white);
+            color: var(--text-mid);
+            padding: 10px 14px;
+            border-radius: var(--radius-sm);
+            margin: 6px 0;
+            font-size: 0.83rem;
+            border: 1px solid var(--border);
         }
 
-        .song-selector {
-            max-height: 200px;
-            overflow-y: auto;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            padding: 10px;
-        }
-
-        .song-option {
-            padding: 10px;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background 0.3s ease;
-        }
-
-        .song-option:hover {
-            background: #e9ecef;
-        }
-
-        .song-option.selected {
-            background: #667eea;
-            color: white;
-        }
-
-        .search-box {
-            margin-bottom: 20px;
-        }
-
+        /* ── CHORD GRID ───────────────────────────────── */
         .chord-suggestions {
-            background: #f8f9fa;
-            border: 1px solid #e0e0e0;
-            border-radius: 10px;
-            padding: 15px;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 16px;
             margin-bottom: 20px;
         }
 
         .chord-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
-            gap: 10px;
+            gap: 5px;
         }
 
         .chord-btn {
-            padding: 8px;
-            background: white;
-            border: 2px solid #667eea;
-            border-radius: 8px;
+            padding: 6px;
+            background: var(--bg-white);
+            border: 1.5px solid var(--border);
+            border-radius: 6px;
             cursor: pointer;
-            transition: all 0.3s ease;
-            font-family: 'Courier New', monospace;
-            font-weight: bold;
-            color: #667eea;
+            transition: var(--transition);
+            font-family: var(--font-mono);
+            font-weight: 700;
+            font-size: 0.76rem;
+            color: var(--blue);
+            box-shadow: none;
         }
 
         .chord-btn:hover {
-            background: #667eea;
-            color: white;
+            background: var(--blue);
+            border-color: var(--blue);
+            color: #fff;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 10px rgba(37,99,235,0.25);
         }
 
-        .format-help {
-            background: #e7f3ff;
-            border-left: 4px solid #2196F3;
-            padding: 15px;
-            margin: 15px 0;
-            border-radius: 0 10px 10px 0;
-        }
-
-        .help-title {
-            font-weight: bold;
-            color: #1976D2;
-            margin-bottom: 10px;
-        }
-
-        .help-example {
-            font-family: 'Courier New', monospace;
-            background: rgba(255,255,255,0.7);
-            padding: 10px;
-            border-radius: 5px;
-            margin: 5px 0;
-        }
-
-        /* Ajout pour l'impression PDF */
-        @media print {
-            body, .modal-content, #songDisplay {
-                margin: 0 !important;
-                padding: 0 !important;
-                background: white !important;
-            }
-            .chord-line, .lyric-line, .section-separator, .section-block {
-                page-break-inside: avoid !important;
-                break-inside: avoid !important;
-            }
-            #songDisplay {
-                column-count: 2;
-                column-gap: 40px;
-            }
-        }
-        .pdf-exporting #songDisplay {
-            margin-top: 0 !important;
-            padding-top: 0 !important;
-            column-count: 2;
-            column-gap: 40px;
-        }
-        .pdf-exporting .chord-line,
-        .pdf-exporting .lyric-line,
-        .pdf-exporting .section-separator,
-        .pdf-exporting .section-block {
-            page-break-inside: avoid !important;
-            break-inside: avoid !important;
-        }
-
-
+        /* ── SONG DISPLAY ─────────────────────────────── */
         #songDisplay {
             max-width: 900px;
             margin: 0 auto;
@@ -488,229 +599,233 @@
             display: block;
         }
 
-        .filter-tab {
-            padding: 8px 18px;
-            border-radius: 20px;
-            font-size: 0.95rem;
+        /* ── PDF ──────────────────────────────────────── */
+        @media print {
+            body, .modal-content, #songDisplay {
+                margin: 0 !important; padding: 0 !important;
+                background: white !important;
+            }
+            .chord-line, .lyric-line, .section-separator, .section-block {
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+            }
+            #songDisplay { column-count:2; column-gap:40px; }
+        }
+        .pdf-exporting #songDisplay {
+            margin-top:0 !important; padding-top:0 !important;
+            column-count:2; column-gap:40px;
+        }
+        .pdf-exporting .chord-line,
+        .pdf-exporting .lyric-line,
+        .pdf-exporting .section-separator,
+        .pdf-exporting .section-block {
+            page-break-inside:avoid !important; break-inside:avoid !important;
+        }
+
+        /* ── HEADINGS ─────────────────────────────────── */
+        .tab-content h2 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--border);
+            letter-spacing: -0.01em;
+        }
+        .tab-content h3 {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--text);
+            margin: 22px 0 10px;
+        }
+
+        /* ── STATS TABLE ──────────────────────────────── */
+        .stats-calendar-table {
+            border-collapse: collapse;
+            width: 100%;
+            background: var(--surface);
+            border-radius: var(--radius);
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+        .stats-calendar-table th {
+            background: var(--navy);
+            color: #fff;
             font-weight: 600;
-            background: rgba(102,126,234,0.1);
-            color: #667eea;
-            border: 2px solid #667eea;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            box-shadow: none;
+            padding: 10px;
+            font-size: 0.82rem;
         }
-        .filter-tab.active, .filter-tab:hover {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+        .stats-calendar-table td {
+            border: 1px solid var(--border);
+            padding: 8px;
+            vertical-align: top;
+            min-width: 60px;
+            height: 68px;
+            color: var(--text-soft);
+            font-size: 0.82rem;
+        }
+        .stats-calendar-table td.today {
+            background: var(--blue-dim);
+            border-color: var(--blue-light);
+        }
+        .stats-calendar-table td .day-number {
+            font-weight: 700;
+            color: var(--text);
         }
 
+        /* ── ADMIN LOCK BOX ───────────────────────────── */
+        #adminLockBox {
+            background: var(--surface2);
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 40px 32px;
+            text-align: center;
+        }
+
+        /* ── FOOTER ───────────────────────────────────── */
+        .site-footer {
+            background: var(--navy);
+            border-top: none;
+            padding: 32px 40px;
+            margin-top: auto;
+        }
+        .site-footer-inner {
+            max-width: 1280px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+        .site-footer-brand {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #ffffff;
+            letter-spacing: -0.01em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .site-footer-brand-icon {
+            width: 28px;
+            height: 28px;
+            background: linear-gradient(135deg, var(--gold-light), var(--gold));
+            border-radius: 7px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+        }
+        .site-footer-desc {
+            color: rgba(255,255,255,0.45);
+            font-size: 0.8rem;
+            max-width: 480px;
+            text-align: center;
+            line-height: 1.6;
+        }
+        .site-footer-divider {
+            width: 36px;
+            height: 1px;
+            background: rgba(255,255,255,0.15);
+        }
+        .site-footer-contact {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: rgba(255,255,255,0.55);
+            font-size: 0.82rem;
+        }
+        .site-footer-contact a {
+            color: var(--gold-light);
+            text-decoration: none;
+            font-weight: 500;
+            transition: var(--transition);
+        }
+        .site-footer-contact a:hover {
+            color: #fff;
+            text-decoration: underline;
+        }
+        .site-footer-copy {
+            color: rgba(255,255,255,0.25);
+            font-size: 0.72rem;
+            letter-spacing: 0.04em;
+        }
+
+        /* ── RESPONSIVE ───────────────────────────────── */
         @media (max-width: 768px) {
-            .container {
-                padding: 10px;
-            }
-
-            h1 {
-                font-size: 1.5rem;
-            }
-
-            .subtitle {
-                font-size: 0.9rem;
-            }
-
-            /* Onglets de navigation : défilement horizontal */
+            .site-topbar { padding: 0 16px; }
+            .site-topbar-sub { display: none; }
+            .site-hero { padding: 36px 18px 30px; }
+            .site-hero h1 { font-size: 1.6rem; }
+            .container { padding: 16px 14px 32px; }
+            .tab-content { padding: 18px 14px; border-radius: var(--radius); }
             .nav-tabs {
-                flex-wrap: nowrap;
-                overflow-x: auto;
-                -webkit-overflow-scrolling: touch;
-                gap: 4px;
-                padding: 4px;
-                border-radius: 10px;
-                scrollbar-width: none;
+                flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch;
+                scrollbar-width: none; gap: 3px;
             }
             .nav-tabs::-webkit-scrollbar { display: none; }
-
-            .nav-tab {
-                font-size: 0.75rem;
-                padding: 10px 8px;
-                white-space: nowrap;
-                flex: 0 0 auto;
-            }
-
-            /* Contenu des onglets */
-            .tab-content {
-                padding: 15px 12px;
-                border-radius: 15px;
-            }
-
-            /* Grille de chansons : 1 colonne sur mobile */
-            .song-list {
-                grid-template-columns: 1fr;
-                gap: 12px;
-            }
-
-            .song-card {
-                padding: 14px;
-            }
-
-            .song-title {
-                font-size: 1.1rem;
-                word-break: break-word;
-            }
-
-            .song-artist {
-                font-size: 0.9rem;
-                word-break: break-word;
-            }
-
-            .song-actions {
-                flex-wrap: wrap;
-                gap: 6px;
-            }
-
-            .btn-small {
-                padding: 7px 10px;
-                font-size: 0.8rem;
-            }
-
-            /* Formulaires */
-            input, textarea, select {
-                font-size: 0.95rem;
-                padding: 10px;
-            }
-
-            button {
-                font-size: 0.9rem;
-                padding: 10px 16px;
-            }
-
-            /* Accords */
-            .chord-btn {
-                padding: 5px 6px;
-                font-size: 0.75rem;
-            }
-
-            /* Contrôles de transposition */
-            .transposition-controls {
-                flex-wrap: wrap;
-                gap: 8px;
-            }
-
-            /* Modal */
-            .modal-content {
-                margin: 10px auto;
-                padding: 15px;
-                width: 96%;
-                max-height: 90vh;
-                border-radius: 12px;
-            }
-
-            /* Affichage chanson */
-            #songDisplay {
-                font-size: 0.85rem;
-                padding: 10px 6px 0 6px;
-                overflow-x: auto;
-            }
-
-            .chord-line, .lyric-line {
-                white-space: pre;
-                overflow-x: auto;
-                display: block;
-                max-width: 100%;
-            }
-
-            /* Lignes de sélection dans le culte */
-            #culteSongsList div[style*="display:flex"] {
-                flex-wrap: wrap;
-            }
-
-            /* Lignes dans la liste du culte sélectionnées */
-            #culteSelectedSongsList div[style*="display:flex"] {
-                flex-wrap: wrap;
-                gap: 6px;
-            }
-
-            /* Export/Import boutons */
-            div[style*="display:flex"][style*="gap:10px"] {
-                flex-wrap: wrap;
-            }
-
-            /* Calendrier stats */
-            .stats-calendar-table td {
-                padding: 4px 2px;
-                font-size: 0.7rem;
-                min-width: unset;
-                height: 50px;
-            }
-
-            .stats-calendar-table th {
-                padding: 6px 2px;
-                font-size: 0.75rem;
-            }
-
-            /* Header stats */
-            #statsCalendarHeader {
-                font-size: 1rem;
-            }
-
-            /* Culte form */
-            #culteForm {
-                max-width: 100% !important;
-            }
+            .nav-tab { font-size: 0.74rem; padding: 9px 8px; flex:0 0 auto; white-space:nowrap; }
+            .song-list { grid-template-columns: 1fr; gap: 12px; }
+            .song-card { padding: 16px 14px 13px; }
+            .modal-content { margin: 10px auto; padding: 18px; width: 96%; border-radius: 16px; }
+            #songDisplay { font-size: 0.83rem; padding: 10px 6px 0; overflow-x: auto; }
+            .chord-line, .lyric-line { white-space: pre; overflow-x: auto; display: block; }
+            input, textarea, select { font-size: 0.9rem; padding: 10px 12px; }
+            button { font-size: 0.86rem; padding: 10px 16px; }
+            .chord-btn { padding: 5px; font-size: 0.71rem; }
+            .transposition-controls { flex-wrap: wrap; gap: 8px; }
+            .site-footer { padding: 24px 18px; }
+            #culteForm { max-width: 100% !important; }
+            .stats-calendar-table td { padding: 4px 2px; font-size: 0.67rem; height: 48px; }
+            .stats-calendar-table th { padding: 6px 2px; font-size: 0.7rem; }
+            #statsCalendarHeader { font-size: 1rem; }
         }
 
         @media (max-width: 480px) {
-            h1 {
-                font-size: 1.25rem;
-            }
-
-            .nav-tab {
-                font-size: 0.7rem;
-                padding: 8px 6px;
-            }
-
-            .tab-content {
-                padding: 12px 8px;
-            }
-
-            .song-card {
-                padding: 12px;
-            }
-
-            /* Textes dans les cards ne débordent pas */
-            .song-title, .song-artist, .song-preview {
-                word-break: break-word;
-                overflow-wrap: break-word;
-            }
-
-            .song-preview {
-                font-size: 0.8rem;
-            }
+            .site-hero h1 { font-size: 1.3rem; }
+            .nav-tab { font-size: 0.69rem; padding: 8px 6px; }
+            .tab-content { padding: 12px 10px; }
+            .song-title, .song-artist, .song-preview { word-break: break-word; overflow-wrap: break-word; }
+            .song-preview { font-size: 0.76rem; }
         }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
-        /* Éléments admin cachés par défaut, visibles seulement si body.admin-mode */
         body:not(.admin-mode) .admin-only { display: none !important; }
         body:not(.admin-mode) .nav-tab[onclick*="'create'"] { display: none !important; }
         body:not(.admin-mode) #adminExportImportBtns { display: none !important; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>🎵 HIRA SY ACCORD FIANGONANA BATISTA AMBOHITRARAHABA</h1>
-            <p class="subtitle">Ahitana ireo hira hira sy accord ao amin'ny fiangonana Batista Ambohitrarahaba</p>
-            <div id="songCounter" style="margin-top:10px; color:#fff; font-weight:bold; font-size:1.1rem;"></div>
-            <div style="margin-top:10px; display:flex; align-items:center; justify-content:center; gap:12px; flex-wrap:wrap;">
-                <div id="syncStatus" style="font-size:0.95rem; color:#fff; background:rgba(0,0,0,0.2); padding:5px 14px; border-radius:20px;">
-                    ⏳ Fanamarinana...
-                </div>
-                <button type="button" onclick="openCloudSetup()" style="background:rgba(255,255,255,0.2); font-size:0.85rem; padding:6px 14px; border:1px solid rgba(255,255,255,0.4);">
-                    ☁️ Configurer la base en ligne
-                </button>
+
+    <!-- ══ TOP BAR ═════════════════════════════════════════════════ -->
+    <nav class="site-topbar">
+        <div class="site-topbar-brand">
+            <div class="site-topbar-logo">♪</div>
+            <div>
+                <div class="site-topbar-name">Hira sy Accord</div>
+                <div class="site-topbar-sub">Fiangonana Batista Ambohitrarahaba</div>
             </div>
-        </header>
+        </div>
+        <div class="site-topbar-right">
+            <div id="syncStatus">⏳ Fanamarinana...</div>
+            <button type="button" onclick="openCloudSetup()" style="background:rgba(255,255,255,0.12);font-size:0.78rem;padding:6px 14px;border:1px solid rgba(255,255,255,0.22);color:rgba(255,255,255,0.9);border-radius:8px;letter-spacing:0.01em;">
+                ☁️ Base en ligne
+            </button>
+        </div>
+    </nav>
+
+    <!-- ══ HERO ═════════════════════════════════════════════════════ -->
+    <div class="site-hero">
+        <div class="site-hero-content">
+            <h1>Hira sy <span class="highlight">Accord</span></h1>
+            <p class="subtitle">Ahitana ireo hira sy accord ao amin'ny fiangonana Batista Ambohitrarahaba</p>
+            <div class="hero-counter" id="songCounter"></div>
+        </div>
+    </div>
+
+    <div class="container">
+        <header></header>
 
         <div class="nav-tabs">
             <button class="nav-tab active" onclick="showTab('songs')">📚 HIRA</button>
@@ -2600,5 +2715,26 @@
             }).save();
         }
     </script>
+    <!-- ══ FOOTER ══════════════════════════════════════════════════ -->
+    <footer class="site-footer">
+        <div class="site-footer-inner">
+            <div class="site-footer-brand">
+                <div class="site-footer-brand-icon">♪</div>
+                Hira sy Accord
+            </div>
+            <div class="site-footer-desc">
+                Plateforme de gestion des chants et accords<br>
+                de la Fiangonana Batista Ambohitrarahaba
+            </div>
+            <div class="site-footer-divider"></div>
+            <div class="site-footer-contact">
+                <span>✉</span>
+                <a href="mailto:kanto.nohasoavina@gmail.com">kanto.nohasoavina@gmail.com</a>
+            </div>
+            <div class="site-footer-copy">
+                © 2025 Fiangonana Batista Ambohitrarahaba &nbsp;·&nbsp; Tous droits réservés
+            </div>
+        </div>
+    </footer>
 </body>
 </html>
