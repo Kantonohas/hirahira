@@ -1725,18 +1725,28 @@
 
         // --- Modifie saveSong pour attendre la sauvegarde distante ---
         async function saveSong() {
+            // Normaliser l'ID : toujours comparer en String pour éviter les doublons
+            const sid = editingSongId !== null ? String(editingSongId) : null;
+            const existing = sid ? songs.find(s => String(s.id) === sid) : null;
+
             const song = {
-                id: editingSongId || Date.now(),
+                id: existing ? existing.id : Date.now(),  // conserver l'ID original exact
                 title: document.getElementById('songTitle').value,
                 artist: document.getElementById('songArtist').value,
                 key: document.getElementById('songKey').value,
                 lyrics: document.getElementById('songLyrics').value,
-                createdAt: editingSongId ? songs.find(s => s.id === editingSongId).createdAt : new Date().toISOString()
+                createdAt: existing ? existing.createdAt : new Date().toISOString()
             };
 
-            if (editingSongId) {
-                const index = songs.findIndex(s => s.id === editingSongId);
-                songs[index] = song;
+            if (existing) {
+                // Remplacer en place — jamais de doublon
+                const index = songs.findIndex(s => String(s.id) === sid);
+                if (index !== -1) {
+                    songs[index] = song;
+                } else {
+                    // Cas de sécurité (ne devrait pas arriver)
+                    songs.push(song);
+                }
                 editingSongId = null;
             } else {
                 songs.push(song);
@@ -1757,8 +1767,8 @@
         // --- Modifie deleteSong pour attendre la sauvegarde distante ---
         async function deleteSong(id) {
             if (confirm('Tena te hamafa ity hira ity ve ianao ?')) {
-                const song = songs.find(s => s.id === id);
-                songs = songs.filter(s => s.id !== id);
+                const song = songs.find(s => String(s.id) === String(id));
+                songs = songs.filter(s => String(s.id) !== String(id));
                 logStat('remove', song);
                 await saveData();
                 displaySongs();
@@ -2511,10 +2521,11 @@
         }
 
         function editSong(id) {
-            const song = songs.find(s => s.id === id);
+            // Comparer en String car les IDs peuvent être number ou string selon la source
+            const song = songs.find(s => String(s.id) === String(id));
             if (!song) return;
 
-            editingSongId = id;
+            editingSongId = song.id;  // stocker l'ID original de la chanson
             document.getElementById('songTitle').value = song.title;
             document.getElementById('songArtist').value = song.artist || '';
             document.getElementById('songKey').value = song.key;
