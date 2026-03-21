@@ -801,7 +801,7 @@
             .site-topbar-sub { display: none; }
             .site-topbar-name { font-size: 0.82rem; }
             .site-topbar-logo { width: 30px; height: 30px; font-size: 0.95rem; border-radius: 7px; }
-            #syncStatus { display: none !important; }
+            #syncStatus { font-size: 0.72rem !important; padding: 3px 9px !important; }
             .site-topbar-right button {
                 font-size: 0.73rem !important;
                 padding: 5px 10px !important;
@@ -966,7 +966,7 @@
         @media (max-width: 360px) {
 
             .site-topbar-name { font-size: 0.68rem; max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-            .site-topbar-right button { display: none !important; }
+            .site-topbar-right button { font-size: 0.65rem !important; padding: 4px 8px !important; }
 
             .site-hero h1 { font-size: 1.05rem; }
             .nav-tab { font-size: 0.62rem; padding: 7px 6px; }
@@ -1275,45 +1275,27 @@
 
     <!-- Modal Configuration Base de Données en Ligne -->
     <div id="cloudSetupModal" class="modal">
-        <div class="modal-content" style="max-width:600px;">
+        <div class="modal-content" style="max-width:420px;">
             <span class="close" onclick="closeCloudSetup()">&times;</span>
-            <h2 style="margin-bottom:5px;">☁️ Base de données en ligne (GitHub Gist)</h2>
-            <p style="color:#666; margin-bottom:20px; font-size:0.95rem;">
-                Connectez GitHub Gist pour partager vos chansons entre tous vos appareils. 100% gratuit, open source, sans quotas.
-            </p>
+            <h2 style="margin-bottom:20px;">☁️ Base en ligne</h2>
 
-            <!-- Statut actuel -->
-            <div id="cloudStatusBox" style="padding:12px 16px; border-radius:10px; margin-bottom:20px; font-weight:600;"></div>
+            <div id="cloudStatusBox" style="display:none;"></div>
 
-            <!-- Instructions -->
-            <div style="background:#e7f3ff; border-left:4px solid #1976D2; padding:15px; border-radius:0 10px 10px 0; margin-bottom:20px;">
-                <div style="font-weight:bold; color:#1976D2; margin-bottom:10px;">📋 Comment faire (gratuit, open source, sans quotas) :</div>
-                <ol style="margin:0; padding-left:20px; line-height:2;">
-                    <li>Allez sur <a href="https://github.com" target="_blank" style="color:#1976D2; font-weight:bold;">github.com</a> et créez un compte gratuit</li>
-                    <li>Allez sur <a href="https://gist.github.com" target="_blank" style="color:#1976D2; font-weight:bold;">gist.github.com</a>, créez un nouveau Gist <strong>public ou secret</strong> avec le fichier nommé <code style="background:#fff;padding:2px 5px;border-radius:4px;">songs.json</code> et le contenu <code style="background:#fff;padding:2px 5px;border-radius:4px;">{"songs":[]}</code></li>
-                    <li>Copiez l'<strong>ID du Gist</strong> depuis l'URL (ex: <code style="background:#fff;padding:2px 5px;border-radius:4px;">abc123def456...</code>)</li>
-                    <li>Allez dans <a href="https://github.com/settings/tokens" target="_blank" style="color:#1976D2;">Settings → Developer settings → Personal access tokens → Tokens (classic)</a> → <strong>Generate new token</strong> avec la permission <strong>gist</strong> cochée</li>
-                    <li>Collez les deux valeurs ci-dessous et cliquez <strong>Enregistrer</strong></li>
-                </ol>
-            </div>
-
-            <!-- Formulaire de config -->
             <div class="form-group">
-                <label for="inputApiKey">🔑 GitHub Token (Personal Access Token)</label>
-                <input type="text" id="inputApiKey" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" autocomplete="off" spellcheck="false">
+                <label for="inputApiKey">GitHub Token</label>
+                <input type="password" id="inputApiKey" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" autocomplete="off" spellcheck="false">
             </div>
             <div class="form-group">
-                <label for="inputBinId">📄 Gist ID</label>
+                <label for="inputBinId">Gist ID</label>
                 <input type="text" id="inputBinId" placeholder="abc123def456789..." autocomplete="off" spellcheck="false">
             </div>
 
-            <div style="display:flex; gap:10px; flex-wrap:wrap;">
-                <button type="button" onclick="saveCloudConfig()" style="background:#28a745; flex:1;">💾 Enregistrer et connecter</button>
-                <button type="button" onclick="testCloudConnection()" style="background:#1976D2; flex:1;">🔍 Tester la connexion</button>
-                <button type="button" onclick="clearCloudConfig()" style="background:#dc3545; flex:1;">🗑️ Supprimer la config</button>
+            <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:8px;">
+                <button type="button" onclick="saveCloudConfig()" style="flex:1;">💾 Enregistrer</button>
+                <button type="button" onclick="clearCloudConfig()" style="background:#dc3545; flex:1;">🗑️ Supprimer</button>
             </div>
 
-            <div id="cloudTestResult" style="margin-top:15px; padding:10px; border-radius:8px; display:none;"></div>
+            <div id="cloudTestResult" style="margin-top:12px; padding:10px; border-radius:8px; display:none;"></div>
         </div>
     </div>
 
